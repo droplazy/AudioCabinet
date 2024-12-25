@@ -53,7 +53,7 @@ void audio_info::DisposeTitleFile()
             //  qDebug() << "文件内容：" << content2;
               extractFields(content2);
           }
-          meta_data.print();
+        //  meta_data.print();
 }
 
 

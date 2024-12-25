@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui dbus
+QT       += core gui dbus  network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,11 +26,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     qdus.cpp \
-    audio_info.cpp
+    audio_info.cpp \
+    httpclient.cpp \
+    rotatingroundedlabel.cpp
 
 HEADERS  += mainwindow.h \
     qdus.h \
     audio_info.h \
-    my_define.h
+    my_define.h \
+    httpclient.h \
+    rotatingroundedlabel.h
 
 FORMS    += mainwindow.ui

@@ -14,9 +14,6 @@ qDbus::qDbus()
     //QprocessBlueToothCtl();
    QString res;
     QStringList arguments;
-    QprocessCommand("pwd",res,arguments);
-    qDebug() << "cmd res : " <<res;
-
     arguments.clear();
     arguments << "power";
     arguments << "on";
@@ -111,6 +108,7 @@ void qDbus::run()
             isMETAON= true;
             qDebug()<< "Meta Audio  is ON";
             connect(p_audio, SIGNAL(updateMeta(S_Aduio_Meta *)), p_main, SLOT(displayAudioMeta(S_Aduio_Meta *)), Qt::AutoConnection);						 // updatefile
+           // emit updateAudiostaus(PLAYING);
          }
     }
 }

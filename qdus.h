@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QString>
 #include <QVariantMap>
+#include "my_define.h"
 
 class audio_info;
 class MainWindow;
@@ -42,7 +43,8 @@ private:
     bool isMETAON =false;
     bool isBlconnected = false;
     bool CheckBlueDevice(QString BlueInfo);
-
+signals:
+    void updateAudiostaus(AUDIO_STATUS);
 };
 
 #endif // QDUS_H
