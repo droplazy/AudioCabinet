@@ -15,13 +15,14 @@ public:
     explicit HttpClient(QObject *parent = nullptr);
     void sendGetRequest(QUrl url);
     void sendPostRequest(QUrl url);
-
+    void printChache();
 private slots:
     void onFinished(QNetworkReply *reply);
 signals:
     void HttpResult(S_HTTP_RESPONE);
 private:
     QNetworkAccessManager *networkManager;
+    S_HTTP_RESPONE *p_test = nullptr;
 };
 
 #endif // HTTPCLIENT_H

@@ -72,8 +72,8 @@ void qDbus::run()
         if(rel.contains("Device "))
         {
             isBlconnected=true;
-            CheckBlueDevice(rel);
-            if(!isblueAlsaTurnon)// A4:F6:E8:06:B2:1F --pcm=hw:0,0
+           
+            if(CheckBlueDevice(rel) && !isblueAlsaTurnon )// A4:F6:E8:06:B2:1F --pcm=hw:0,0
             {
 //                QString res;
 //                 QStringList arguments;
@@ -275,6 +275,7 @@ bool qDbus::CheckBlueDevice(QString BlueInfo)
         HwId  =getData;
     } else {
         qDebug() << "Keyword not found.";
+        return false;
     }
     /***********************/
     postion = BlueInfo.indexOf("Name: ");
@@ -288,6 +289,8 @@ bool qDbus::CheckBlueDevice(QString BlueInfo)
         BLname =getData ;
     } else {
         qDebug() << "Keyword not found.";
+                return false;
+
     }
     /**************************/
     postion = BlueInfo.indexOf("Alias: ");
@@ -301,6 +304,8 @@ bool qDbus::CheckBlueDevice(QString BlueInfo)
         BLname =Alias ;
     } else {
         qDebug() << "Keyword not found.";
+                return false;
+
     }
     /**************************/
     postion = BlueInfo.indexOf("Paired: ");
@@ -327,6 +332,7 @@ bool qDbus::CheckBlueDevice(QString BlueInfo)
     } else {
         qDebug() << "Keyword not found.";
     }
+            return true;
 
 }
 

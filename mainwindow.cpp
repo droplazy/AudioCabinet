@@ -11,7 +11,8 @@
 #include <QRegularExpression>
 #include <unistd.h>
 #include <QImage>
-#include "rotatingroundedlabel.h"
+#include <QTimer>
+#include <QTimerEvent>
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -102,7 +103,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     p_dbus->start();
     GetDeviceIP();
     GetOnewords();
-
+    // QTimer *timer = new QTimer(this);
+    // connect(timer, &QTimer::timeout, this, &MainWindow::DebugChache);
+    // timer->start(5000);  // 每20ms更新一次（可根据需要调整旋转速度）
+    label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
  }
 
 MainWindow::~MainWindow()
@@ -190,6 +194,8 @@ void MainWindow::disposeIP(S_HTTP_RESPONE s_back)
 
 void MainWindow::disposeWeatherInfo(QString jsonString)
 {
+    p_http->printChache();
+
 
     QVector<WeatherData> weatherData = getWeatherData(jsonString, localPlace);
     QString showWeather;
@@ -288,7 +294,9 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
     else if (s_back.Title == PICTURE_DOWNLOAD)
     {
         // qDebug() << s_back.Message;
-        displayAlbumPicOnlabel(s_back.bytes);
+        QByteArray qmix = s_back.bytes;
+        this->displayAlbumPicOnlabel(qmix);
+
     }
     else if (s_back.Title == IP_QUERY)
     {
@@ -306,7 +314,13 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
 
 void MainWindow::AlbumPicRotato()
 {
-    //ui->label_albumpic->
+}
+void MainWindow::DebugChache()
+{
+
+    qDebug() << "udhcpc result : " ;
+    p_http->sendGetRequest(QUrl("http://img0.baidu.com/it/u=4101285560,1286785277&fm=253&fmt=auto&app=120&f=JPEG"));
+
 }
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
@@ -410,9 +424,9 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
     else
     {
         qDebug() << "Code is not 200";
-        if (doc.object().value("msg").toString().contains("参数过长"))
-        {
-            qDebug() << "参数过长";
+        // if (doc.object().value("msg").toString().contains("参数过长"))
+        // {
+          
 
             QString fixKeyword;
             if (Playing_Album.length() <= Playing_Artist.length())
@@ -423,17 +437,22 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 
                 fixKeyword = Playing_Artist;
 
-            if (fixKeyword.length() >32)
+            if (fixKeyword.length() >24)
             {
-               fixKeyword.left(32);
+
+               fixKeyword= fixKeyword.left(24);
             }
-            
 
-
+            // QRegExp regex("[^A-Za-z0-9]");
+            // fixKeyword= fixKeyword.replace(regex, "");
+            qDebug() << "参数过长 校正后" <<fixKeyword;
+            badKeywords= true;
             GetAlbumPicture(fixKeyword);
-        }
-        else
-            GetAlbumPicture(Playing_Artist);
+        // }
+        // else
+        // {
+        //     GetAlbumPicture(Playing_Artist);
+        // }
         sleep(1);
         return -1;
     }
@@ -451,6 +470,31 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
         if (isImageWhite(image, 200))
         {
             qDebug() << "this picture is not good ,try to refind one ";
+            if (badKeywords)
+            {
+           
+            QString fixKeyword;
+            if (Playing_Album.length() <= Playing_Artist.length())
+
+                fixKeyword = Playing_Album;
+
+            else
+
+                fixKeyword = Playing_Artist;
+
+            if (fixKeyword.length() >16)
+            {
+
+               fixKeyword= fixKeyword.left(16);
+            }
+
+            // QRegExp regex("[^A-Za-z0-9]");
+            // fixKeyword= fixKeyword.replace(regex, "");
+            qDebug() << "参数过长 校正后" <<fixKeyword;
+            badKeywords= true;
+            GetAlbumPicture(fixKeyword+"+album");
+            }
+            else 
             GetAlbumPicture(Playing_Album+" 封面");
             return ;
         }
@@ -460,7 +504,7 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
         QPixmap pixmap = QPixmap::fromImage(image);
 
 
-            RotatingRoundLabel *label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
+            
             label->move(530, 40);  // 设置标签位置
 
 

@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "my_define.h"
-
+#include "rotatingroundedlabel.h"
 
 class qDbus;
 class HttpClient;
@@ -37,6 +37,7 @@ public slots:
     //void DisposeHttpResult(S_HTTP_RESPONE);
     void DisposeHttpResult(S_HTTP_RESPONE s_back);
     void AlbumPicRotato();
+    void DebugChache();
 private:
     Ui::MainWindow *ui;
     qDbus *p_dbus;
@@ -46,6 +47,8 @@ private:
     QString Playing_Album;
     QString localPlace;
     QString DeviceIP;
+    bool badKeywords=false;
+     RotatingRoundLabel *label;
 };
 
 
