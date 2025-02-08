@@ -4,3 +4,8 @@ main_thread::main_thread()
 {
 
 }
+
+void main_thread::run()
+{
+
+}

@@ -96,7 +96,9 @@ extern cmd_tbl_t common_cmd_table[];
 extern cmd_tbl_t bt_cmd_table[];
 extern cmd_tbl_t bt_gatts_cmd_table[];
 extern cmd_tbl_t bt_gattc_cmd_table[];
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 /*gatt client*/
 void bt_gatt_client_register_callback(btmg_callback_t *cb);
 int bt_gatt_client_init();
@@ -107,9 +109,19 @@ void bt_gatt_server_register_callback(btmg_callback_t *cb);
 int bt_gatt_server_init();
 int bt_gatt_server_deinit();
 
+
+
+void mission_start();
+int mainloop(int argc, char **argv);
+
 /*a2dp src*/
 bool bt_a2dp_src_is_run(void);
 void bt_a2dp_src_stop(void);
+//extern int fd;
+#ifdef __cplusplus
+}
+#endif
+
 
 #include <stddef.h>
 #include <stdio.h>

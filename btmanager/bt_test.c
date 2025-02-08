@@ -1022,7 +1022,9 @@ static void *pfd1_thread_process(void *arg)
     pthread_exit(NULL);
 }
 
-int main(int argc, char **argv)
+
+
+int mainloop(int argc, char **argv)
 {
     int opt;
     btmg_log_level_t debug;
@@ -1131,12 +1133,12 @@ int main(int argc, char **argv)
             BTMG_ERROR("pfd1_thread_process error");
     }
 
-    while (!__main_terminated) {
-        usleep(10);
-    };
-    pthread_join(pfd0_thread, NULL);
-    if (is_background != 1)
-        pthread_join(pfd1_thread, NULL);
-    _bt_deinit();
+//    while (!__main_terminated) {
+//        usleep(10);
+//    };
+//    pthread_join(pfd0_thread, NULL);
+//    if (is_background != 1)
+//        pthread_join(pfd1_thread, NULL);
+//    _bt_deinit();
     return 0;
 }

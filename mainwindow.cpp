@@ -1,10 +1,11 @@
 #include "mainwindow.h"
+#include "main_thread.h"
 #include "ui_mainwindow.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
+#include <QProcess>
 #include "httpclient.h"
-#include "qdus.h"
 #include <QUrl>
 #include <QUrlQuery>
 #include <QJsonArray>
@@ -13,6 +14,11 @@
 #include <QImage>
 #include <QTimer>
 #include <QTimerEvent>
+#include <QtCore/QCoreApplication>
+#include <QtDBus/QDBusInterface>
+#include <QtDBus/QDBusReply>
+#include <QtDBus/QDBusInterface>
+#include <QtDBus/QDBusReply>
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -94,7 +100,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
                                           ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //p_btmg->start();
+
+    qDebug() << "****************************************************************";
+    //sleep(3);
     wifiLaunch();
+#if 0
     p_dbus = new qDbus();
     p_http = new HttpClient();
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); // updatefile
@@ -107,6 +118,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     // connect(timer, &QTimer::timeout, this, &MainWindow::DebugChache);
     // timer->start(5000);  // 每20ms更新一次（可根据需要调整旋转速度）
     label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
+
+//    MyGattService service;
+//    service.createGattService();
+#endif
  }
 
 MainWindow::~MainWindow()
@@ -347,22 +362,28 @@ QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 
 void MainWindow::wifiLaunch()
 {
-    QString res;
-    QStringList arguments;
-    arguments.clear();
-    arguments << "-B";
-    arguments << "-i";
-    arguments << "wlan0";
-    arguments << "-c";
-    arguments << "/etc/wpa_supplicant.conf";
-    QprocessCommand("wpa_supplicant", res, arguments);
-    qDebug() << "wpa_supplicant result : " << res;
+//    QString res;
+//    QStringList arguments;
+//    arguments.clear();
+//    QprocessCommand("wifi_daemon", res, arguments);
+//    qDebug() << "wifi_daemon : " << res;
+//    arguments.clear();
+//    QprocessCommand("ifconfig", res, arguments);
+//    qDebug() << "ifconfig : " << res;
+//    arguments.clear();
+//    arguments << "-o";
+//    arguments << "sta";
+//    QprocessCommand("wifi", res, arguments);
+//    qDebug() << "wifi open : " << res;
 
-    arguments.clear();
-    arguments << "-i";
-    arguments << "wlan0";
-    QprocessCommand("udhcpc", res, arguments);
-    qDebug() << "udhcpc result : " << res;
+//    arguments.clear();
+//    arguments << "-t";
+//    arguments << "ThanksGivingDay_111";
+//    QprocessCommand("wifi", res, arguments);
+//    qDebug() << "wifi -t : " << res;
+    system("wifi_daemon\n");
+    system("wifi -o sta\n");
+
 }
 
 void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)

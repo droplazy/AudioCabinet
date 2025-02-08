@@ -7,6 +7,9 @@
 
 class qDbus;
 class HttpClient;
+class Btmanager_thread;
+class main_thread;
+
 namespace Ui {
 class MainWindow;
 }
@@ -40,7 +43,7 @@ public slots:
     void DebugChache();
 private:
     Ui::MainWindow *ui;
-    qDbus *p_dbus;
+    main_thread *p_thread;
     HttpClient *p_http;
     AUDIO_STATUS a_sta= NO_AUIO;
     QString Playing_Artist;
@@ -48,7 +51,7 @@ private:
     QString localPlace;
     QString DeviceIP;
     bool badKeywords=false;
-     RotatingRoundLabel *label;
+    RotatingRoundLabel *label;
 };
 
 
