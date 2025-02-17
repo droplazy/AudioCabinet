@@ -1,0 +1,4 @@
+#ifndef FINGERPACKAGE_H
+#define FINGERPACKAGE_H
+
+#endif // FINGERPACKAGE_H
