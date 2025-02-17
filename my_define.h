@@ -12,7 +12,7 @@
 #define URL_PICTURE_BAIDU       "http://vip.apihz.cn/api/img/apihzimgbaidu.php"
 #define URL_PICTURE_SOUGOU      "http://vip.apihz.cn/api/img/apihzimgsougou.php"
 #define URL_ONE_WORD            "http://vip.apihz.cn/api/yiyan/api.php"
-#define URL_IP_QUERY            "http://49.234.56.78/api/ip/getapi.php"
+#define URL_IP_QUERY            "http://124.222.204.22/api/ip/chaapi.php"
 #define URL_HISTORY_TODAY       "http://vip.apihz.cn/api/time/getday.php"
 #define URL_WEATHER_IP          "http://vip.apihz.cn/api/tianqi/tqybmoji15ip.php"
 

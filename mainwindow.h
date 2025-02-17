@@ -9,7 +9,7 @@ class qDbus;
 class HttpClient;
 class Btmanager_thread;
 class main_thread;
-
+class FingerThread;
 namespace Ui {
 class MainWindow;
 }
@@ -36,14 +36,18 @@ public:
     void disposeWeatherInfo(QString jsonString);
     QVector<WeatherData> getWeatherData(const QString &jsonString, QString &place);
 public slots:
-    void displayAudioMeta(S_Aduio_Meta *p_meta);
+    void displayAudioMeta();
+    void UserAddFinger();
+
     //void DisposeHttpResult(S_HTTP_RESPONE);
     void DisposeHttpResult(S_HTTP_RESPONE s_back);
     void AlbumPicRotato();
     void DebugChache();
+    void flushNetUI();
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
+    FingerThread *p_finger;
     HttpClient *p_http;
     AUDIO_STATUS a_sta= NO_AUIO;
     QString Playing_Artist;

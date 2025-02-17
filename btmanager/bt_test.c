@@ -47,6 +47,9 @@ dev_list_t *discovered_devices = NULL;
 cmd_tbl_t *g_cmd_list;
 static void _bt_deinit();
 
+btmg_track_info_t total_info_audio;
+int trackUpdate =0;
+
 static void bt_test_adapter_status_cb(btmg_adapter_state_t status)
 {
     char bt_addr[18] = { 0 };
@@ -274,14 +277,20 @@ static void bt_test_avrcp_play_state_cb(const char *bd_addr, btmg_avrcp_play_sta
 }
 static void bt_test_avrcp_track_changed_cb(const char *bd_addr, btmg_track_info_t track_info)
 {
-    BTMG_DEBUG("BT playing device: %s", bd_addr);
-    BTMG_INFO("BT playing music title: %s", track_info.title);
-    BTMG_INFO("BT playing music artist: %s", track_info.artist);
-    BTMG_INFO("BT playing music album: %s", track_info.album);
-    BTMG_DEBUG("BT playing music track number: %s", track_info.track_num);
-    BTMG_DEBUG("BT playing music total number of tracks: %s", track_info.num_tracks);
-    BTMG_DEBUG("BT playing music genre: %s", track_info.genre);
-    BTMG_DEBUG("BT playing music duration: %s", track_info.duration);
+//    BTMG_DEBUG("BT playing device: %s", bd_addr);
+//    BTMG_INFO("BT playing music title: %s", track_info.title);
+//    BTMG_INFO("BT playing music artist: %s", track_info.artist);
+//    BTMG_INFO("BT playing music album: %s", track_info.album);
+//    BTMG_DEBUG("BT playing music track number: %s", track_info.track_num);
+//    BTMG_DEBUG("BT playing music total number of tracks: %s", track_info.num_tracks);
+//    BTMG_DEBUG("BT playing music genre: %s", track_info.genre);
+//    BTMG_DEBUG("BT playing music duration: %s", track_info.duration);
+
+    //btmg_track_info_t total_info_audio;
+    memcpy(&total_info_audio,&track_info,sizeof(track_info));
+     trackUpdate =1;
+     BTMG_INFO("BT states %d ", trackUpdate);
+
 }
 
 static void bt_test_avrcp_audio_volume_cb(const char *bd_addr, unsigned int volume)

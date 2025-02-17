@@ -90,7 +90,10 @@ SOURCES += main.cpp\
     btmanager/bt_gatt_server_demo.c \
     btmanager/bt_gatt_test_demo.c \
     btmanager/bt_test.c \
-    main_thread.cpp
+    main_thread.cpp \
+    SetupSerialPort.c \
+    fingerthread.cpp \
+    fingerpackage.cpp
 
 HEADERS  += mainwindow.h \
     my_define.h \
@@ -138,6 +141,9 @@ HEADERS  += mainwindow.h \
     btmanager/include/platform.h \
     btmanager/include/transmit.h \
     btmanager/bt_test.h \
-    main_thread.h
+    main_thread.h \
+    SetupSerialPort.h \
+    fingerthread.h \
+    fingerpackage.h
 
 FORMS    += mainwindow.ui

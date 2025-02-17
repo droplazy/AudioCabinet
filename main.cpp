@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
       QGraphicsScene *scene = new QGraphicsScene;
       QGraphicsProxyWidget *w = scene->addWidget(&w_ui);
-      w->setRotation(90);
+      w->setRotation(270);
       w->setWindowFlags (Qt::FramelessWindowHint);
       QGraphicsView *view = new QGraphicsView(scene);
       view->setWindowFlags (Qt::FramelessWindowHint);

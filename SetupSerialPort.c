@@ -68,7 +68,7 @@ int OpenComPort (int ComPort, int baudrate, int databit, const char *stopbit, ch
         retval = SetPortAttr (fdd, baudrate, databit, stopbit, parity);
         if (-1 == retval)
             return -1;
-        printf("[UASRT2]:open ttyS2 successed!\n");
+        //printf("[UASRT2]:open ttyS2 successed!\n");
         return (fdd);
 }
 

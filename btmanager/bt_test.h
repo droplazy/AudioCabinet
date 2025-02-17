@@ -48,6 +48,8 @@
 /* Used with WAV_FMT_EXTENSIBLE format */
 #define WAV_GUID_TAG		"\x00\x00\x00\x00\x10\x00\x80\x00\x00\xAA\x00\x38\x9B\x71"
 
+
+
 /* it's in chunks like .voc and AMIGA iff, but my source say there
    are in only in this combination, so I combined them in one header;
    it works on all WAVE-file I have
@@ -99,6 +101,10 @@ extern cmd_tbl_t bt_gattc_cmd_table[];
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern btmg_track_info_t total_info_audio;
+extern int trackUpdate;
+
 /*gatt client*/
 void bt_gatt_client_register_callback(btmg_callback_t *cb);
 int bt_gatt_client_init();

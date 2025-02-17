@@ -19,6 +19,7 @@
 #include <QtDBus/QDBusReply>
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
+#include "fingerthread.h"
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -105,22 +106,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     qDebug() << "****************************************************************";
     //sleep(3);
     wifiLaunch();
-#if 0
-    p_dbus = new qDbus();
-    p_http = new HttpClient();
-    connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); // updatefile
 
-    p_dbus->p_main = this;
-    p_dbus->start();
-    GetDeviceIP();
-    GetOnewords();
+    p_http = new HttpClient();
+    p_thread = new main_thread();
+    p_thread->start();
+    p_finger = new FingerThread();
+    p_finger->start();
+    connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
+    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection); // updateAudioTrack
+    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //
+    connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection); //
+
+#if 1
+
     // QTimer *timer = new QTimer(this);
     // connect(timer, &QTimer::timeout, this, &MainWindow::DebugChache);
     // timer->start(5000);  // 每20ms更新一次（可根据需要调整旋转速度）
     label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
 
-//    MyGattService service;
-//    service.createGattService();
 #endif
  }
 
@@ -235,38 +238,54 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     ui->label_weather->setText(showWeather);
 }
 
-void MainWindow::displayAudioMeta(S_Aduio_Meta *p_meta)
-{
-    ui->label_aumble->setText(p_meta->Album);
+#include "btmanager/bt_test.h"
 
-    ui->label_duration->setText(convertDurationToTimeFormat(p_meta->Duration));
-    ui->label_position->setText(convertDurationToTimeFormat(p_meta->Position));
-    ui->label_title->setText(p_meta->Title);
+void MainWindow::displayAudioMeta()
+{
+    ui->label_aumble->setText(total_info_audio.album);
+
+    ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
+    //ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
+    ui->label_title->setText(total_info_audio.title);
     // qDebug() << "USER PLAY CHANGED !" <<Playing_Album << ": " << p_meta->Album   << "boolean:" <<p_meta->Album.contains(Playing_Album);
 
-    if (Playing_Album != p_meta->Album)
+    if (Playing_Album != total_info_audio.album)
     {
-        qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << p_meta->Album << "boolean:" << p_meta->Album.contains(Playing_Album);
+        //qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << total_info_audio.album << "boolean:" << total_info_audio.album.contains(Playing_Album);
 
         //        if(p_meta->Artist.contains(Playing_Artist) || Playing_Artist =="")
         //        {
 
-        Playing_Artist = p_meta->Artist;
+        Playing_Artist = total_info_audio.artist;
+        Playing_Album = total_info_audio.album;
+
         qDebug() << "Get picture";
-        QString result = p_meta->Artist + "+" + p_meta->Album;
+        QString result = Playing_Artist + "+" + Playing_Album;
         GetAlbumPicture(result);
 
-        Playing_Album = p_meta->Album;
     }
-    ui->label_artist->setText(p_meta->Artist);
-    if(p_meta->Status == "playing" && a_sta != PLAYING)
-    {
-        a_sta=PLAYING;
-    }
-    else if(p_meta->Status == "pause" && a_sta != PAUSE)
-    {
-        a_sta =PAUSE;
-    }
+    ui->label_artist->setText(total_info_audio.artist);
+//    if(p_meta->Status == "playing" && a_sta != PLAYING)
+//    {
+//        a_sta=PLAYING;
+//    }
+//    else if(p_meta->Status == "pause" && a_sta != PAUSE)
+//    {
+//        a_sta =PAUSE;
+//    }
+      //  BTMG_DEBUG("BT playing device: %s", bd_addr);
+        qDebug("BT playing music title: %s", total_info_audio.title);
+        qDebug("BT playing music artist: %s", total_info_audio.artist);
+        qDebug("BT playing music album: %s", total_info_audio.album);
+        qDebug("BT playing music track number: %s", total_info_audio.track_num);
+        qDebug("BT playing music total number of tracks: %s", total_info_audio.num_tracks);
+        qDebug("BT playing music genre: %s", total_info_audio.genre);
+        qDebug("BT playing music duration: %s", total_info_audio.duration);
+}
+
+void MainWindow::UserAddFinger()
+{
+    p_finger->AutoEnroll();
 }
 
 void MainWindow::GetAlbumPicture(QString Artist)
@@ -336,6 +355,14 @@ void MainWindow::DebugChache()
     qDebug() << "udhcpc result : " ;
     p_http->sendGetRequest(QUrl("http://img0.baidu.com/it/u=4101285560,1286785277&fm=253&fmt=auto&app=120&f=JPEG"));
 
+}
+
+void MainWindow::flushNetUI()
+{
+    qDebug() << "VAEVAEAVEVAEVAEVAVE" ;
+
+     GetDeviceIP();
+     GetOnewords();
 }
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
