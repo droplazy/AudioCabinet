@@ -5,6 +5,11 @@
 #include "my_define.h"
 #include "rotatingroundedlabel.h"
 
+
+#define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
+#define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
+
+
 class qDbus;
 class HttpClient;
 class Btmanager_thread;
@@ -27,7 +32,7 @@ public:
     int DisposePciteureJson(S_HTTP_RESPONE s_back);
 
     void displayAlbumPicOnlabel(QByteArray imageData);
-    void GetAlbumPicture(QString Artist);
+    void GetAlbumPicture(QString Artist, QString page, QString limit);
     void GetOnewords();
     void GetDeviceIP();
     void GetWeatherOnIp();
@@ -44,6 +49,7 @@ public slots:
     void AlbumPicRotato();
     void DebugChache();
     void flushNetUI();
+    void ElcLockOption();
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
@@ -56,6 +62,8 @@ private:
     QString DeviceIP;
     bool badKeywords=false;
     RotatingRoundLabel *label;
+    int picSearchCnt=0;
+    QStringList getUrl;
 };
 
 

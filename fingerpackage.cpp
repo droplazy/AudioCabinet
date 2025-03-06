@@ -21,10 +21,12 @@ uint16_t calculateChecksum(uint8_t* data, size_t length) {
 
 // 打印十六进制数据
 void printHex(uint8_t* data, size_t length) {
+#ifdef PRINT_HEX
     for (size_t i = 0; i < length; i++) {
         printf("%02X ", data[i]);
     }
     printf("\n");
+#endif
 }
 
 // 生成指令包，返回包的整体长度

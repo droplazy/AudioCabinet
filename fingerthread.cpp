@@ -16,7 +16,6 @@ FingerThread::FingerThread()
     }
 
 
-
 }
 
 void FingerThread::run()
@@ -28,12 +27,15 @@ void FingerThread::run()
 
     sleep(1);
     AutoEnroll();
+
+
+
     while(1)
     {
-
+       // if()
 
         ret = GetFingerInputFile();
-        qDebug() << "FINGER INPUT : " <<ret <<"FINGER TYPe : " << Fig_Opt;
+       // qDebug() << "FINGER INPUT : " <<ret <<"FINGER TYPe : " << Fig_Opt;
         if(ret == 1 && Fig_Opt!= FO_ENROLL)
         {
             AutoIdentify();
@@ -77,6 +79,8 @@ void FingerThread::run()
                     {
                     qDebug() <<"指纹匹配成功 score = "  <<(int)score;
                     Fig_Opt =FO_NOP;
+                    emit upanddownlock();
+                    usleep(1500*1000);//TODO
                     }
                     else
                     {
@@ -202,4 +206,5 @@ int FingerThread::GetFingerInputFile()
 
         return get_data.toInt(NULL,10);
 }
+
 

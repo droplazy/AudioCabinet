@@ -5,10 +5,15 @@
 #include <QThread>
 #include <QByteArray>
 #include <QDebug>
+#include <QTime>
+#include <QTimer>
 #include <QFile>
 #include <QTextStream>
 
 #define  INPUT_FILE "/proc/rp_gpio/input_finger"
+/*
+#define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
+#define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)*/
 
 typedef enum{
     FO_NOP = 0,
@@ -28,10 +33,15 @@ public:
     void AutoEnroll();
     void AutoIdentify();
     int GetFingerInputFile();
+
+
 private:
     int ttyFD;
     QFile Input_file();
     FINGERT_OPTION Fig_Opt =FO_NOP;
+    QDateTime locktime;
+signals:
+    void upanddownlock();
 };
 
 #endif // FINGERTHREAD_H

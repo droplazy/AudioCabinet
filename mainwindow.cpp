@@ -101,7 +101,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
                                           ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //p_btmg->start();
 
     qDebug() << "****************************************************************";
     //sleep(3);
@@ -116,12 +115,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection); // updateAudioTrack
     connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //
     connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection); //
+    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection); //
 
 #if 1
 
-    // QTimer *timer = new QTimer(this);
-    // connect(timer, &QTimer::timeout, this, &MainWindow::DebugChache);
-    // timer->start(5000);  // 每20ms更新一次（可根据需要调整旋转速度）
     label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
 
 #endif
@@ -259,9 +256,9 @@ void MainWindow::displayAudioMeta()
         Playing_Artist = total_info_audio.artist;
         Playing_Album = total_info_audio.album;
 
-        qDebug() << "Get picture";
+        qDebug() << "Get picture" << Playing_Artist << "AND "<< Playing_Album;
         QString result = Playing_Artist + "+" + Playing_Album;
-        GetAlbumPicture(result);
+        GetAlbumPicture(result,"1","10");
 
     }
     ui->label_artist->setText(total_info_audio.artist);
@@ -287,8 +284,25 @@ void MainWindow::UserAddFinger()
 {
     p_finger->AutoEnroll();
 }
+void MainWindow::ElcLockOption()
+{
+    PULLUP_ELCLOCK;
+//    QTimer *timer = new QTimer();
+//    connect(timer, &QTimer::timeout, this, [](){
+//        qDebug() << "Timeout triggered!";
+//        PULLDOWN_ELCLOCK;
+//    });
+//    timer->start(1000);  // 每20ms更新一次（可根据需要调整旋转速度）
+    QTimer::singleShot(1000, this, [](){
+                qDebug() << "Timeout triggered!";
+                PULLDOWN_ELCLOCK;
+            });
 
-void MainWindow::GetAlbumPicture(QString Artist)
+    qDebug() << "TIME START !!!!!!!!!!";
+}
+
+
+void MainWindow::GetAlbumPicture(QString Artist,QString page,QString limit)
 {
     QUrl url(URL_PICTURE_BAIDU);
     QUrlQuery query;
@@ -302,6 +316,8 @@ void MainWindow::GetAlbumPicture(QString Artist)
         words = words.left(32);
     }
     query.addQueryItem("words", words);
+    query.addQueryItem("page", page);
+    query.addQueryItem("limit", limit);
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(QUrl(url));
 }
@@ -410,6 +426,7 @@ void MainWindow::wifiLaunch()
 //    qDebug() << "wifi -t : " << res;
     system("wifi_daemon\n");
     system("wifi -o sta\n");
+    system("wifi -c ThanksGivingDay_111 Zz123456\n");//todo
 
 }
 
@@ -434,7 +451,7 @@ void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 {
     qDebug() << s_back.Message;
-
+    static int errcnt =0;
     QString jsonString = s_back.Message;
 
     QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
@@ -446,17 +463,17 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 
     // 获取根对象
     QJsonObject jsonObj = doc.object();
-    QStringList getUrl;
+ //   QStringList getUrl;
     // 判断 code 是否为 200
     if (jsonObj.value("code").toInt() == 200)
     {
         QJsonArray resArray = jsonObj.value("res").toArray();
 
-        // 提取前5个URL
+        // 提取前10个URL
         int count = 0;
         for (const QJsonValue &value : resArray)
         {
-            if (count < 5)
+            if (count < 10)
             {
                 qDebug() << value.toString();
                 getUrl.append(value.toString());
@@ -467,13 +484,14 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
                 break;
             }
         }
-        DownloadAudioPctrue(getUrl.first());
+        DownloadAudioPctrue(getUrl.at(picSearchCnt++));
     }
     else
     {
+
         qDebug() << "Code is not 200";
-        // if (doc.object().value("msg").toString().contains("参数过长"))
-        // {
+         if (doc.object().value("msg").toString().contains("参数过长"))
+         {
           
 
             QString fixKeyword;
@@ -491,36 +509,69 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
                fixKeyword= fixKeyword.left(24);
             }
 
-            // QRegExp regex("[^A-Za-z0-9]");
-            // fixKeyword= fixKeyword.replace(regex, "");
+             QRegExp regex("[^A-Za-z0-9]");
+             fixKeyword= fixKeyword.replace(regex, "");
             qDebug() << "参数过长 校正后" <<fixKeyword;
+            if(errcnt++>= 10)
+            {
+
+            }
+            else{
             badKeywords= true;
-            GetAlbumPicture(fixKeyword);
-        // }
-        // else
-        // {
-        //     GetAlbumPicture(Playing_Artist);
-        // }
+            GetAlbumPicture(fixKeyword,"1","10");
+            }
+        sleep(1);
+        return -1;
+    }
+         else if (doc.object().value("msg").toString().contains("Syntax error"))
+         {
+             static bool isAlbum = false;
+             QRegExp regex("[^A-Za-z0-9]");
+             QString fixKeyword;
+             if(isAlbum)
+             fixKeyword= Playing_Album.replace(regex, "");
+             else
+             {
+             fixKeyword= Playing_Artist.replace(regex, "");
+             }
+             if (fixKeyword.length() >24)
+             {
+
+                fixKeyword= fixKeyword.left(24);
+             }
+            isAlbum=true;
+            GetAlbumPicture(fixKeyword,"1","1");
+           }
+         else if(doc.object().value("msg").toString().contains("Control character error"))
+         {
+             static bool isAlbum = false;
+             QRegExp regex("[^A-Za-z0-9]");
+             QString fixKeyword;
+             if(isAlbum)
+             fixKeyword= Playing_Album.replace(regex, "");
+             else
+             {
+             fixKeyword= Playing_Artist.replace(regex, "");
+             }
+             if (fixKeyword.length() >24)
+             {
+
+                fixKeyword= fixKeyword.left(24);
+             }
+            isAlbum=true;
+            GetAlbumPicture(fixKeyword,"1","1");
+         }
+         else /*if(doc.object().value("msg").toString().contains("请求失败，请重试！"))*/
+         {
+            GetAlbumPicture(Playing_Album,"1","10");
+         }
         sleep(1);
         return -1;
     }
 }
-
-void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
-{
-    QByteArray imageData = bytes;
-
-    // 将下载的图片数据转换成 QImage
-    QImage image;
-
-    if (image.loadFromData(imageData))
-    {
-        if (isImageWhite(image, 200))
-        {
-            qDebug() << "this picture is not good ,try to refind one ";
-            if (badKeywords)
+/*            if (badKeywords)
             {
-           
+
             QString fixKeyword;
             if (Playing_Album.length() <= Playing_Artist.length())
 
@@ -542,9 +593,25 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
             badKeywords= true;
             GetAlbumPicture(fixKeyword+"+album");
             }
-            else 
-            GetAlbumPicture(Playing_Album+" 封面");
+            else
+            GetAlbumPicture(Playing_Album+" 封面");*/
+void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
+{
+    QByteArray imageData = bytes;
+
+    // 将下载的图片数据转换成 QImage
+    QImage image;
+
+    if (image.loadFromData(imageData))
+    {
+        if (isImageWhite(image, 200))
+        {
+            qDebug() << "this picture is not good ,try to refind one ";
+            if(picSearchCnt< 10)
+            {
+            DownloadAudioPctrue(getUrl.at(picSearchCnt++));
             return ;
+            }
         }
 
         // 将 QImage 转换为 QPixmap
@@ -558,7 +625,8 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
 
             label->loadImage(pixmap);  // 设置标签的图片
             label->show();
-
+            getUrl.clear();
+            picSearchCnt =0;
     }
     else
     {

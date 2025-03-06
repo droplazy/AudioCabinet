@@ -34,6 +34,8 @@
 #define COLOR_BLUE "\x1B[0;34m"
 
 #define CMD_ARGS_MAX 20
+#define  PULLUP_SD    do{ usleep(500*1000);system("echo 1 > /proc/rp_gpio/output_sd");} while(0)
+#define  PULLDOWN_SD    do{ system("echo 0 > /proc/rp_gpio/output_sd");} while(0)
 
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(*(a)))
 static int song_playing_pos = 0;
@@ -216,10 +218,13 @@ static void bt_test_a2dp_sink_audio_state_cb(const char *bd_addr,
                                              btmg_a2dp_sink_audio_state_t state)
 {
     if (state == BTMG_A2DP_SINK_AUDIO_SUSPENDED) {
+        PULLDOWN_SD;
         BTMG_INFO("A2DP sink audio suspended with device: %s", bd_addr);
     } else if (state == BTMG_A2DP_SINK_AUDIO_STOPPED) {
+        PULLDOWN_SD;
         BTMG_INFO("A2DP sink audio stopped with device: %s", bd_addr);
     } else if (state == BTMG_A2DP_SINK_AUDIO_STARTED) {
+        PULLUP_SD;
         BTMG_INFO("A2DP sink audio started with device: %s", bd_addr);
     }
 }
@@ -254,14 +259,16 @@ static void bt_test_a2dp_source_connection_state_cb(const char *bd_addr,
         BTMG_INFO("A2DP source disconnect with device: %s failed!", bd_addr);
     }
 }
-
 static void bt_test_avrcp_play_state_cb(const char *bd_addr, btmg_avrcp_play_state_t state)
 {
     if (state == BTMG_AVRCP_PLAYSTATE_STOPPED) {
+        PULLDOWN_SD;
         BTMG_INFO("BT playing music stopped with device: %s", bd_addr);
     } else if (state == BTMG_AVRCP_PLAYSTATE_PLAYING) {
+        PULLUP_SD;
         BTMG_INFO("BT palying music playing with device: %s", bd_addr);
     } else if (state == BTMG_AVRCP_PLAYSTATE_PAUSED) {
+        PULLDOWN_SD;
         BTMG_INFO("BT palying music paused with device: %s", bd_addr);
     } else if (state == BTMG_AVRCP_PLAYSTATE_FWD_SEEK) {
         BTMG_INFO("BT palying music FWD SEEK with device: %s", bd_addr);

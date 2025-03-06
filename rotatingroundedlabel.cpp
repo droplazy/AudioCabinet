@@ -27,8 +27,8 @@ void RotatingRoundLabel::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
 
-    // 启用抗锯齿
-    painter.setRenderHint(QPainter::Antialiasing);
+    // 启用抗锯齿  //运行内存消耗过大
+   // painter.setRenderHint(QPainter::Antialiasing);
 
     // 创建圆形路径
     QPainterPath path;
