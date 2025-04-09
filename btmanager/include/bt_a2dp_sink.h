@@ -16,6 +16,9 @@ int bt_a2dp_sink_deinit(void);
 void bt_a2dp_sink_stream_cb_enable(bool enable);
 void *a2dp_pcm_worker_routine(struct pcm_worker *w);
 
+
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+//#include <QMediaPlayer>
 #include "my_define.h"
 #include "rotatingroundedlabel.h"
 
@@ -29,7 +30,7 @@ public:
     QString convertDurationToTimeFormat(const QString &durationStr);
     void wifiLaunch();
     void DisposeOneWord(S_HTTP_RESPONE s_back);
-    int DisposePciteureJson(S_HTTP_RESPONE s_back);
+    int  DisposePciteureJson(S_HTTP_RESPONE s_back);
 
     void displayAlbumPicOnlabel(QByteArray imageData);
     void GetAlbumPicture(QString Artist, QString page, QString limit);
@@ -43,7 +44,7 @@ public:
 public slots:
     void displayAudioMeta();
     void UserAddFinger();
-
+    void displaySpectrum();
     //void DisposeHttpResult(S_HTTP_RESPONE);
     void DisposeHttpResult(S_HTTP_RESPONE s_back);
     void AlbumPicRotato();
@@ -63,6 +64,7 @@ private:
     bool badKeywords=false;
     RotatingRoundLabel *label;
     int picSearchCnt=0;
+    int picGetcnt=0;
     QStringList getUrl;
 };
 

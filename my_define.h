@@ -42,6 +42,14 @@ struct WeatherData {
     QString wendu1;  // 白天温度（如：10°）
     QString wendu2;  // 夜间温度（如：5°）
 };
+struct SpectrumMeta {
+    QString week1;   // 星期（如：周二）
+    QString week2;   // 日期（如：12/24）
+    QString wea1;    // 白天气象（如：少云）
+    QString wea2;    // 夜间天气（如：少云）
+    QString wendu1;  // 白天温度（如：10°）
+    QString wendu2;  // 夜间温度（如：5°）
+};
 
 
 struct S_Aduio_Meta {

@@ -197,7 +197,7 @@ int FingerThread::GetFingerInputFile()
 
         // 尝试打开文件
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug() << "无法打开文件:" << file.errorString();
+          //  qDebug() << "无法打开文件:" << file.errorString();
             return -1;
         }
 

@@ -1,6 +1,50 @@
 #include "main_thread.h"
 #include "btmanager/bt_test.h"
+#include "bt_a2dp_sink.h"
 
+void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, int N) {
+    fftw_complex* in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
+      fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
+
+      for (int i = 0; i < N; ++i) {
+          short sample = pcmData[i * 2] | (pcmData[i * 2 + 1] << 8);
+          in[i][0] = static_cast<double>(sample);
+          in[i][1] = 0.0;
+      }
+
+      fftw_plan plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+      fftw_execute(plan);
+
+      // 输出功率（dB单位）
+      int aa =0;
+      for (int i = 0; i < N / 2; ++i) {
+          double real = out[i][0];
+          double imag = out[i][1];
+          double magnitude = std::sqrt(real * real + imag * imag);
+          double power = magnitude * magnitude;
+         // double dB = 10 * std::log10(power + 1e-10);  // 避免log10(0)
+
+          double frequency = i * sampleRate / N;
+         // qDebug() << "Frequency:" << frequency << "Hz, Power (dB):" << power;
+         if (static_cast<int>(frequency) % 250 < 10 && frequency!=0)
+          {
+            spectrumMeta[aa] =power;
+           // qDebug() <<aa <<"frequency"<<frequency <<"spectrumMeta" <<spectrumMeta[aa];
+            aa++;
+            if(aa >30)
+            {
+                fftw_destroy_plan(plan);
+                fftw_free(in);
+                fftw_free(out);
+                return;
+            }
+          }
+      }
+
+      fftw_destroy_plan(plan);
+      fftw_free(in);
+      fftw_free(out);
+}
 
 main_thread::main_thread()
 {
@@ -24,14 +68,9 @@ void main_thread::run()
             trackUpdate= 0;
             emit updateAudioTrack();
         }
-//        int ret =GetGpioStatus("/proc/rp_gpio/input_volume_mute");
-//        if(ret==1)
-//        {
-//            qDebug() << "/proc/rp_gpio/input_volume_mute  =  " <<ret;
-
-//            emit DebugSignal();
-//        }
-
+       // qDebug() << "231";
+        SpectrumMetaData();
+       // qDebug() << "456";
 
         usleep(1000*1);
     }
@@ -51,7 +90,7 @@ int main_thread::GetGpioStatus(QString GPIO_fILE)
 
     // 尝试打开文件
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "无法打开文件:" << file.errorString();
+     //   qDebug() << "无法打开文件:" << file.errorString();
         return -1;
     }
 
@@ -59,6 +98,34 @@ int main_thread::GetGpioStatus(QString GPIO_fILE)
     file.close();
 
     return get_data.toInt(NULL,10);
+}
+
+void main_thread::SpectrumMetaData()
+{
+    // 假设采样率为44100Hz，并且我们有一段PCM数据（示例：1秒钟，44100个样本）
+    int sampleRate = 44100;
+    int N = 44100;  // 1秒钟的PCM数据，假设为44100Hz采样率
+
+    // 示例：生成一个简单的100Hz正弦波作为PCM数据
+  /*  std::vector<short> pcmData(N);  // PCM数据存储为16位短整型数据
+    for (int i = 0; i < N; ++i) {
+        pcmData[i] = static_cast<short>(std::sin(2 * M_PI * 100 * i / sampleRate) * 32767);  // 100Hz正弦波
+    }
+
+    // 将std::vector<short>转换为char*
+    char* pcmDataChar = reinterpret_cast<char*>(pcmData.data());
+*/
+    // 调用计算功率谱函数
+   // qDebug() << "pcm_lenth "<<pcm_lenth;
+    if(pcm_lenth >0)
+    {
+      /*  for(int i =0;i<pcm_lenth;i++)
+        {
+            printf(" %02x" , pcm_data[i]);
+        }
+        printf("\n");*/
+        calculatePowerSpectrum((const char *)pcm_data, sampleRate, pcm_lenth);
+    }
 }
 
 void main_thread::checkNetworkStatus()

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui dbus  network
+QT       += core gui  network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,14 +25,17 @@ INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/ou
 INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/out/t113/evb1_auto/buildroot/buildroot/host/arm-buildroot-linux-gnueabi/sysroot/usr/include/dbus-1.0
 INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/out/t113/evb1_auto/buildroot/buildroot/host/arm-buildroot-linux-gnueabi/sysroot/usr/lib/dbus-1.0/include/
 INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/out/t113/evb1_auto/buildroot/buildroot/host/arm-buildroot-linux-gnueabi/sysroot/usr/include
+INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/out/t113/evb1_auto/buildroot/buildroot/host/arm-buildroot-linux-gnueabi/sysroot/usr/include
+INCLUDEPATH +=/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/third/fftw/build/include
 
 LIBS += -L/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/out/t113/evb1_auto/buildroot/buildroot/target/lib
-
+LIBS += -L/home/zhangjh/1AAA_T113/TINA/T113-Series_Tina5.0_V1.1/T113-Tina/third/fftw/build/lib
 
 #LIBS += -L/home/zhangjh/1AAA_T113/T113/linux/source/out/gcc-linaro-5.3.1-2016.05-x86_64_arm-linux-gnueabi/arm-linux-gnueabi/lib
 
 LIBS    += -lbluetooth -lglib-2.0 -lsbc -ljson-c -lgio-2.0 -lgobject-2.0 -lasound -lbtmg -ldl -lm -lresolv -ldbus-1 -lwirelesscom -lpthread
 LIBS+=-lshared-mainloop -lbluetooth-internal -lreadline -lncurses
+LIBS += -lfftw3
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -147,3 +150,6 @@ HEADERS  += mainwindow.h \
     fingerpackage.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    pic.qrc

@@ -7,6 +7,12 @@
 #include <QNetworkConfigurationManager>
 #include <QNetworkSession>
 #include <QFile>
+#include <complex.h>
+#include <math.h>
+#include <fftw3.h>
+#include <cmath>
+#include <vector>
+
 
 
 
@@ -18,8 +24,10 @@ public:
     virtual void run();
     bool isConnected();
     int GetGpioStatus(QString GPIO_fILE);
+    void SpectrumMetaData();
+    void calculatePowerSpectrum(const char* pcmData, int sampleRate, int N);
 
-
+    double spectrumMeta[30];
 public slots:
     void checkNetworkStatus();
 

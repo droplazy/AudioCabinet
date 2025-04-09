@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include <QtDBus/QDBusMetaType>
-#include <QtDBus/QtDBus>
+//#include <QtDBus/QDBusMetaType>
+//#include <QtDBus/QtDBus>
+#include  <QTextCodec>
 #include "btmanager/bt_test.h"
 #include <QGraphicsView>
 #include <QGraphicsProxyWidget>
@@ -35,7 +36,7 @@ int main(int argc, char *argv[])
       w->setWindowFlags (Qt::FramelessWindowHint);
       QGraphicsView *view = new QGraphicsView(scene);
       view->setWindowFlags (Qt::FramelessWindowHint);
-      view->setGeometry(-5,-5,330,970);
+      view->setGeometry(-5,-5,470,790);
       //   view->resize(250,330);
       view->show();
     return a.exec();

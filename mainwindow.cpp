@@ -122,6 +122,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
 
 #endif
+        QTimer *timer = new QTimer();
+       /* connect(timer, &QTimer::timeout, this, [](){
+            qDebug() << "Timeout aaatriggered!";
+          //  PULLDOWN_ELCLOCK;
+        });*/
+        connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
+        timer->start(20);  // 每20ms更新一次（可根据需要调整旋转速度）
+
+
  }
 
 MainWindow::~MainWindow()
@@ -283,6 +292,63 @@ void MainWindow::displayAudioMeta()
 void MainWindow::UserAddFinger()
 {
     p_finger->AutoEnroll();
+}
+
+void MainWindow::displaySpectrum()
+{
+
+#if 1
+    for (int i = 0; i < 30; ++i) {
+        // 使用 findChild 动态查找每个 QLabel 对象
+        QString labelName = QString("label_%1").arg(i);  // 动态构造标签名称
+
+        QLabel* a_label = nullptr;
+        if (labelName == "label") a_label = ui->label;
+       // else if (labelName == "label_1") label = ui->label;
+        else if (labelName == "label_2") a_label = ui->label_2;
+        else if (labelName == "label_3") a_label = ui->label_3;
+        else if (labelName == "label_4") a_label = ui->label_4;
+        else if (labelName == "label_5") a_label = ui->label_5;
+        else if (labelName == "label_6") a_label = ui->label_6;
+        else if (labelName == "label_7") a_label = ui->label_7;
+        else if (labelName == "label_8") a_label = ui->label_8;
+        else if (labelName == "label_9") a_label = ui->label_9;
+        else if (labelName == "label_10") a_label = ui->label_10;
+        else if (labelName == "label_11") a_label = ui->label_11;
+        else if (labelName == "label_12") a_label = ui->label_12;
+        else if (labelName == "label_13") a_label = ui->label_13;
+        else if (labelName == "label_14") a_label = ui->label_14;
+        else if (labelName == "label_15") a_label = ui->label_15;
+        else if (labelName == "label_16") a_label = ui->label_16;
+        else if (labelName == "label_17") a_label = ui->label_17;
+        else if (labelName == "label_18") a_label = ui->label_18;
+        else if (labelName == "label_19") a_label = ui->label_19;
+        else if (labelName == "label_20") a_label = ui->label_20;
+        else if (labelName == "label_21") a_label = ui->label_21;
+        else if (labelName == "label_22") a_label = ui->label_22;
+        else if (labelName == "label_23") a_label = ui->label_23;
+        else if (labelName == "label_24") a_label = ui->label_24;
+        else if (labelName == "label_25") a_label = ui->label_25;
+        else if (labelName == "label_26") a_label = ui->label_26;
+
+
+        if (a_label) {  // 如果标签存在
+            // 只更改高度，保持宽度不变
+            double original_min = 0;  // 原始数据的最小值
+            double original_max = 600000;  // 原始数据的最大值
+            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (450 - 1));
+            if (newHeight < 1) newHeight = 1;
+            if (newHeight > 450) newHeight = 450;
+
+          //  int newHeight = scaled_value;
+          //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
+
+            a_label->resize(a_label->width(),newHeight );
+        } else {
+         //   qDebug() << labelName << "not found!";
+        }
+    }
+#endif
 }
 void MainWindow::ElcLockOption()
 {
@@ -473,17 +539,13 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         int count = 0;
         for (const QJsonValue &value : resArray)
         {
-            if (count < 10)
-            {
+
                 qDebug() << value.toString();
                 getUrl.append(value.toString());
                 count++;
-            }
-            else
-            {
-                break;
-            }
+
         }
+        picGetcnt = count;
         DownloadAudioPctrue(getUrl.at(picSearchCnt++));
     }
     else
@@ -606,8 +668,9 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
     {
         if (isImageWhite(image, 200))
         {
-            qDebug() << "this picture is not good ,try to refind one ";
-            if(picSearchCnt< 10)
+            qDebug() << "this picture is not good ,try to refind one  " ;
+            qDebug() << "current count :" << picSearchCnt<< "total source: "<< picGetcnt;
+            if(picSearchCnt< picGetcnt)
             {
             DownloadAudioPctrue(getUrl.at(picSearchCnt++));
             return ;
@@ -627,6 +690,7 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
             label->show();
             getUrl.clear();
             picSearchCnt =0;
+            picGetcnt= 0;
     }
     else
     {
