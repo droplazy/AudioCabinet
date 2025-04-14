@@ -50,6 +50,11 @@ cmd_tbl_t *g_cmd_list;
 static void _bt_deinit();
 
 btmg_track_info_t total_info_audio;
+int playing_len = 0;
+int playing_pos = 0;
+
+btmg_avrcp_play_state_t get_state   = BTMG_AVRCP_PLAYSTATE_STOPPED;
+int switchFlag =0;
 int trackUpdate =0;
 
 static void bt_test_adapter_status_cb(btmg_adapter_state_t status)
@@ -281,6 +286,8 @@ static void bt_test_avrcp_play_state_cb(const char *bd_addr, btmg_avrcp_play_sta
     } else if (state == BTMG_AVRCP_PLAYSTATE_ERROR) {
         BTMG_INFO("BT palying music ERROR with device: %s", bd_addr);
     }
+
+    get_state = state;
 }
 static void bt_test_avrcp_track_changed_cb(const char *bd_addr, btmg_track_info_t track_info)
 {
@@ -312,7 +319,10 @@ static void bt_test_avrcp_play_position_cb(const char *bd_addr, int song_len, in
     }
     song_playing_len = song_len;
     song_playing_pos = song_pos;
-    BTMG_DEBUG("%s,playing song len:%d,position:%d", bd_addr, song_len, song_pos);
+    playing_len = song_playing_len;
+    playing_pos = song_pos;
+    switchFlag =1;
+    BTMG_INFO("%s,playing song len:%d,position:%d", bd_addr, song_len, song_pos);
 }
 
 static void bt_test_hfp_hf_connection_state_cb(btmg_hfp_hf_connection_state_t state)

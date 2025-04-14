@@ -13,7 +13,7 @@ Q_DECLARE_METATYPE(ConnectionDetails)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-
+    QApplication::setOverrideCursor(Qt::BlankCursor);
           QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 #if 1
     //set system Font
@@ -24,19 +24,20 @@ int main(int argc, char *argv[])
     int size=11;
     font.setPointSize(size);
     a.setFont(font);
-#endif
+
        char *argvv[] = {"bt_test",NULL};
        mainloop(1,argvv);
+#endif
       MainWindow w_ui;
 
 
       QGraphicsScene *scene = new QGraphicsScene;
       QGraphicsProxyWidget *w = scene->addWidget(&w_ui);
-      w->setRotation(270);
+      w->setRotation(90);
       w->setWindowFlags (Qt::FramelessWindowHint);
       QGraphicsView *view = new QGraphicsView(scene);
       view->setWindowFlags (Qt::FramelessWindowHint);
-      view->setGeometry(-5,-5,470,790);
+      view->setGeometry(-5,-5,485,805);
       //   view->resize(250,330);
       view->show();
     return a.exec();

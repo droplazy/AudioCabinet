@@ -31,7 +31,8 @@ enum HTTP_TYPE {
 enum AUDIO_STATUS {
     NO_AUIO,
     PLAYING,
-    PAUSE
+    PAUSE,
+    STOP
 };
 
 struct WeatherData {

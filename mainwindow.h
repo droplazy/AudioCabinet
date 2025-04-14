@@ -51,12 +51,13 @@ public slots:
     void DebugChache();
     void flushNetUI();
     void ElcLockOption();
+    void setPlayProgress(int current );
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
     FingerThread *p_finger;
     HttpClient *p_http;
-    AUDIO_STATUS a_sta= NO_AUIO;
+  //  btmg_avrcp_play_state_t a_sta= BTMG_AVRCP_STOP;
     QString Playing_Artist;
     QString Playing_Album;
     QString localPlace;
@@ -65,6 +66,9 @@ private:
     RotatingRoundLabel *label;
     int picSearchCnt=0;
     int picGetcnt=0;
+    int currentPosition =0;
+    int positonoffset =0;//平滑进度条
+    int offsetReduce =5;//平滑进度条
     QStringList getUrl;
 };
 

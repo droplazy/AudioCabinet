@@ -21,17 +21,20 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(114, 159, 207);</string>
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="label_artist">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>40</y>
-      <width>129</width>
+      <x>400</x>
+      <y>270</y>
+      <width>391</width>
       <height>34</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(193, 125, 17);</string>
     </property>
     <property name="text">
      <string>歌手 </string>
@@ -40,11 +43,15 @@
    <widget class="QLabel" name="label_aumble">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>90</y>
-      <width>911</width>
+      <x>10</x>
+      <y>270</y>
+      <width>381</width>
       <height>34</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: 11pt &quot;Ubuntu Condensed&quot;;
+background-color: rgb(117, 80, 123);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
@@ -53,14 +60,14 @@
    <widget class="QLabel" name="label_title">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>220</y>
-      <width>911</width>
+      <x>10</x>
+      <y>310</y>
+      <width>801</width>
       <height>34</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(115, 210, 22);</string>
+     <string notr="true">background-color: rgb(52, 101, 164);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
@@ -69,11 +76,14 @@
    <widget class="QLabel" name="label_position">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>270</y>
-      <width>101</width>
-      <height>41</height>
+      <x>400</x>
+      <y>190</y>
+      <width>121</width>
+      <height>51</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(211, 215, 207);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
@@ -82,11 +92,14 @@
    <widget class="QLabel" name="label_duration">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>260</y>
+      <x>240</x>
+      <y>190</y>
       <width>151</width>
       <height>61</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(52, 101, 164);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
@@ -95,11 +108,15 @@
    <widget class="QLabel" name="label_soulwords">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>400</y>
-      <width>1471</width>
+      <x>230</x>
+      <y>90</y>
+      <width>561</width>
       <height>34</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(211, 215, 207);
+font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
     </property>
     <property name="text">
      <string>心灵毒鸡汤</string>
@@ -108,8 +125,8 @@
    <widget class="QLabel" name="label_IP">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>20</y>
+      <x>240</x>
+      <y>50</y>
       <width>441</width>
       <height>31</height>
      </rect>
@@ -118,14 +135,14 @@
      <string notr="true">background-color: rgb(115, 210, 22);</string>
     </property>
     <property name="text">
-     <string>对哦，有按钮的话，背面肯定要放元器件了</string>
+     <string>IP</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_weather">
     <property name="geometry">
      <rect>
-      <x>539</x>
-      <y>60</y>
+      <x>10</x>
+      <y>40</y>
       <width>201</width>
       <height>231</height>
      </rect>
@@ -567,6 +584,56 @@
      <string>26</string>
     </property>
    </widget>
+   <widget class="QLabel" name="label_progressbar_back">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>460</y>
+      <width>800</width>
+      <height>5</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(136, 138, 133);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_progressbar_up">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>460</y>
+      <width>800</width>
+      <height>5</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(115, 210, 22);
+border-radius:2px;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_progressbar_point">
+    <property name="geometry">
+     <rect>
+      <x>750</x>
+      <y>410</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(115, 210, 22);
+border-radius:10px;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>label_artist</zorder>
    <zorder>label_aumble</zorder>
    <zorder>label_position</zorder>
@@ -601,8 +668,10 @@
    <zorder>label_25</zorder>
    <zorder>label_26</zorder>
    <zorder>label_title</zorder>
+   <zorder>label_progressbar_back</zorder>
+   <zorder>label_progressbar_point</zorder>
+   <zorder>label_progressbar_up</zorder>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

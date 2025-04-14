@@ -20,6 +20,7 @@
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
 #include "fingerthread.h"
+#include "bt_manager.h"
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -103,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->setupUi(this);
 
     qDebug() << "****************************************************************";
-    //sleep(3);
+    // sleep(3);
     wifiLaunch();
 
     p_http = new HttpClient();
@@ -112,26 +113,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     p_finger = new FingerThread();
     p_finger->start();
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
-    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection); // updateAudioTrack
-    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //
-    connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection); //
-    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection); //
+    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // updateAudioTrack
+    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);                      //
+    connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
+    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);                            //
 
-#if 1
+#if RotationLabel
 
-    label = new RotatingRoundLabel(80, this);  // 创建一个半径为100的圆形标签
+    label = new RotatingRoundLabel(80, this); // 创建一个半径为100的圆形标签
 
 #endif
-        QTimer *timer = new QTimer();
-       /* connect(timer, &QTimer::timeout, this, [](){
-            qDebug() << "Timeout aaatriggered!";
-          //  PULLDOWN_ELCLOCK;
-        });*/
-        connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
-        timer->start(20);  // 每20ms更新一次（可根据需要调整旋转速度）
-
-
- }
+    setPlayProgress(0);
+    QTimer *timer = new QTimer();
+    /* connect(timer, &QTimer::timeout, this, [](){
+         qDebug() << "Timeout aaatriggered!";
+       //  PULLDOWN_ELCLOCK;
+     });*/
+    connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
+    timer->start(5); // 每20ms更新一次（可根据需要调整旋转速度）
+}
 
 MainWindow::~MainWindow()
 {
@@ -220,7 +220,6 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 {
     p_http->printChache();
 
-
     QVector<WeatherData> weatherData = getWeatherData(jsonString, localPlace);
     QString showWeather;
     // 如果返回的天气数据不为空，则输出相关信息
@@ -251,13 +250,13 @@ void MainWindow::displayAudioMeta()
     ui->label_aumble->setText(total_info_audio.album);
 
     ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
-    //ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
+    // ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
     ui->label_title->setText(total_info_audio.title);
     // qDebug() << "USER PLAY CHANGED !" <<Playing_Album << ": " << p_meta->Album   << "boolean:" <<p_meta->Album.contains(Playing_Album);
 
     if (Playing_Album != total_info_audio.album)
     {
-        //qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << total_info_audio.album << "boolean:" << total_info_audio.album.contains(Playing_Album);
+        // qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << total_info_audio.album << "boolean:" << total_info_audio.album.contains(Playing_Album);
 
         //        if(p_meta->Artist.contains(Playing_Artist) || Playing_Artist =="")
         //        {
@@ -265,28 +264,27 @@ void MainWindow::displayAudioMeta()
         Playing_Artist = total_info_audio.artist;
         Playing_Album = total_info_audio.album;
 
-        qDebug() << "Get picture" << Playing_Artist << "AND "<< Playing_Album;
+        qDebug() << "Get picture" << Playing_Artist << "AND " << Playing_Album;
         QString result = Playing_Artist + "+" + Playing_Album;
-        GetAlbumPicture(result,"1","10");
-
+        GetAlbumPicture(result, "1", "10");
     }
     ui->label_artist->setText(total_info_audio.artist);
-//    if(p_meta->Status == "playing" && a_sta != PLAYING)
-//    {
-//        a_sta=PLAYING;
-//    }
-//    else if(p_meta->Status == "pause" && a_sta != PAUSE)
-//    {
-//        a_sta =PAUSE;
-//    }
-      //  BTMG_DEBUG("BT playing device: %s", bd_addr);
-        qDebug("BT playing music title: %s", total_info_audio.title);
-        qDebug("BT playing music artist: %s", total_info_audio.artist);
-        qDebug("BT playing music album: %s", total_info_audio.album);
-        qDebug("BT playing music track number: %s", total_info_audio.track_num);
-        qDebug("BT playing music total number of tracks: %s", total_info_audio.num_tracks);
-        qDebug("BT playing music genre: %s", total_info_audio.genre);
-        qDebug("BT playing music duration: %s", total_info_audio.duration);
+    //    if(p_meta->Status == "playing" && a_sta != PLAYING)
+    //    {
+    //        a_sta=PLAYING;
+    //    }
+    //    else if(p_meta->Status == "pause" && a_sta != PAUSE)
+    //    {
+    //        a_sta =PAUSE;
+    //    }
+    //  BTMG_DEBUG("BT playing device: %s", bd_addr);
+    qDebug("BT playing music title: %s", total_info_audio.title);
+    qDebug("BT playing music artist: %s", total_info_audio.artist);
+    qDebug("BT playing music album: %s", total_info_audio.album);
+    qDebug("BT playing music track number: %s", total_info_audio.track_num);
+    qDebug("BT playing music total number of tracks: %s", total_info_audio.num_tracks);
+    qDebug("BT playing music genre: %s", total_info_audio.genre);
+    qDebug("BT playing music duration: %s", total_info_audio.duration);
 }
 
 void MainWindow::UserAddFinger()
@@ -296,79 +294,148 @@ void MainWindow::UserAddFinger()
 
 void MainWindow::displaySpectrum()
 {
+    if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
+    {
+
+        return;
+    }
 
 #if 1
-    for (int i = 0; i < 30; ++i) {
+    for (int i = 0; i < 30; ++i)
+    {
         // 使用 findChild 动态查找每个 QLabel 对象
-        QString labelName = QString("label_%1").arg(i);  // 动态构造标签名称
+        QString labelName = QString("label_%1").arg(i); // 动态构造标签名称
 
-        QLabel* a_label = nullptr;
-        if (labelName == "label") a_label = ui->label;
-       // else if (labelName == "label_1") label = ui->label;
-        else if (labelName == "label_2") a_label = ui->label_2;
-        else if (labelName == "label_3") a_label = ui->label_3;
-        else if (labelName == "label_4") a_label = ui->label_4;
-        else if (labelName == "label_5") a_label = ui->label_5;
-        else if (labelName == "label_6") a_label = ui->label_6;
-        else if (labelName == "label_7") a_label = ui->label_7;
-        else if (labelName == "label_8") a_label = ui->label_8;
-        else if (labelName == "label_9") a_label = ui->label_9;
-        else if (labelName == "label_10") a_label = ui->label_10;
-        else if (labelName == "label_11") a_label = ui->label_11;
-        else if (labelName == "label_12") a_label = ui->label_12;
-        else if (labelName == "label_13") a_label = ui->label_13;
-        else if (labelName == "label_14") a_label = ui->label_14;
-        else if (labelName == "label_15") a_label = ui->label_15;
-        else if (labelName == "label_16") a_label = ui->label_16;
-        else if (labelName == "label_17") a_label = ui->label_17;
-        else if (labelName == "label_18") a_label = ui->label_18;
-        else if (labelName == "label_19") a_label = ui->label_19;
-        else if (labelName == "label_20") a_label = ui->label_20;
-        else if (labelName == "label_21") a_label = ui->label_21;
-        else if (labelName == "label_22") a_label = ui->label_22;
-        else if (labelName == "label_23") a_label = ui->label_23;
-        else if (labelName == "label_24") a_label = ui->label_24;
-        else if (labelName == "label_25") a_label = ui->label_25;
-        else if (labelName == "label_26") a_label = ui->label_26;
+        QLabel *a_label = nullptr;
+        if (labelName == "label")
+            a_label = ui->label;
+        // else if (labelName == "label_1") label = ui->label;
+        else if (labelName == "label_2")
+            a_label = ui->label_2;
+        else if (labelName == "label_3")
+            a_label = ui->label_3;
+        else if (labelName == "label_4")
+            a_label = ui->label_4;
+        else if (labelName == "label_5")
+            a_label = ui->label_5;
+        else if (labelName == "label_6")
+            a_label = ui->label_6;
+        else if (labelName == "label_7")
+            a_label = ui->label_7;
+        else if (labelName == "label_8")
+            a_label = ui->label_8;
+        else if (labelName == "label_9")
+            a_label = ui->label_9;
+        else if (labelName == "label_10")
+            a_label = ui->label_10;
+        else if (labelName == "label_11")
+            a_label = ui->label_11;
+        else if (labelName == "label_12")
+            a_label = ui->label_12;
+        else if (labelName == "label_13")
+            a_label = ui->label_13;
+        else if (labelName == "label_14")
+            a_label = ui->label_14;
+        else if (labelName == "label_15")
+            a_label = ui->label_15;
+        else if (labelName == "label_16")
+            a_label = ui->label_16;
+        else if (labelName == "label_17")
+            a_label = ui->label_17;
+        else if (labelName == "label_18")
+            a_label = ui->label_18;
+        else if (labelName == "label_19")
+            a_label = ui->label_19;
+        else if (labelName == "label_20")
+            a_label = ui->label_20;
+        else if (labelName == "label_21")
+            a_label = ui->label_21;
+        else if (labelName == "label_22")
+            a_label = ui->label_22;
+        else if (labelName == "label_23")
+            a_label = ui->label_23;
+        else if (labelName == "label_24")
+            a_label = ui->label_24;
+        else if (labelName == "label_25")
+            a_label = ui->label_25;
+        else if (labelName == "label_26")
+            a_label = ui->label_26;
 
-
-        if (a_label) {  // 如果标签存在
+        if (a_label)
+        { // 如果标签存在
             // 只更改高度，保持宽度不变
-            double original_min = 0;  // 原始数据的最小值
-            double original_max = 600000;  // 原始数据的最大值
+            double original_min = 0;      // 原始数据的最小值
+            double original_max = 600000; // 原始数据的最大值
             int newHeight = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (450 - 1));
-            if (newHeight < 1) newHeight = 1;
-            if (newHeight > 450) newHeight = 450;
+            if (newHeight < 1)
+                newHeight = 1;
+            if (newHeight > 450)
+                newHeight = 450;
 
-          //  int newHeight = scaled_value;
-          //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
+            //  int newHeight = scaled_value;
+            //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
 
-            a_label->resize(a_label->width(),newHeight );
-        } else {
-         //   qDebug() << labelName << "not found!";
+            a_label->resize(a_label->width(), newHeight);
+        }
+        else
+        {
+            //   qDebug() << labelName << "not found!";
         }
     }
+    if (switchFlag)
+    {
+
+        if (positonoffset == 0 || abs(positonoffset -playing_pos) >5000)
+        {
+            positonoffset = playing_pos;
+        }
+        else 
+        {
+            if (playing_pos-positonoffset>0)
+            {
+                offsetReduce++;
+            }
+            else 
+            {
+                offsetReduce--;
+            }
+            
+        }
+        switchFlag = 0;
+    }
+    positonoffset += offsetReduce;
+    currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);
+
+    setPlayProgress(currentPosition);
+
+    qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
+
 #endif
 }
 void MainWindow::ElcLockOption()
 {
     PULLUP_ELCLOCK;
-//    QTimer *timer = new QTimer();
-//    connect(timer, &QTimer::timeout, this, [](){
-//        qDebug() << "Timeout triggered!";
-//        PULLDOWN_ELCLOCK;
-//    });
-//    timer->start(1000);  // 每20ms更新一次（可根据需要调整旋转速度）
-    QTimer::singleShot(1000, this, [](){
+    //    QTimer *timer = new QTimer();
+    //    connect(timer, &QTimer::timeout, this, [](){
+    //        qDebug() << "Timeout triggered!";
+    //        PULLDOWN_ELCLOCK;
+    //    });
+    //    timer->start(1000);  // 每20ms更新一次（可根据需要调整旋转速度）
+    QTimer::singleShot(1000, this, []()
+                       {
                 qDebug() << "Timeout triggered!";
-                PULLDOWN_ELCLOCK;
-            });
+                PULLDOWN_ELCLOCK; });
 
     qDebug() << "TIME START !!!!!!!!!!";
 }
 
+void MainWindow::setPlayProgress(int current)
+{
+    // ui->label_progressbar_point->setGeometry(current,453,20,20);
+    ui->label_progressbar_up->setGeometry(0, 460, current, 5);
+}
 
-void MainWindow::GetAlbumPicture(QString Artist,QString page,QString limit)
+void MainWindow::GetAlbumPicture(QString Artist, QString page, QString limit)
 {
     QUrl url(URL_PICTURE_BAIDU);
     QUrlQuery query;
@@ -412,7 +479,6 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
         // qDebug() << s_back.Message;
         QByteArray qmix = s_back.bytes;
         this->displayAlbumPicOnlabel(qmix);
-
     }
     else if (s_back.Title == IP_QUERY)
     {
@@ -434,17 +500,16 @@ void MainWindow::AlbumPicRotato()
 void MainWindow::DebugChache()
 {
 
-    qDebug() << "udhcpc result : " ;
+    qDebug() << "udhcpc result : ";
     p_http->sendGetRequest(QUrl("http://img0.baidu.com/it/u=4101285560,1286785277&fm=253&fmt=auto&app=120&f=JPEG"));
-
 }
 
 void MainWindow::flushNetUI()
 {
-    qDebug() << "VAEVAEAVEVAEVAEVAVE" ;
+    qDebug() << "VAEVAEAVEVAEVAEVAVE";
 
-     GetDeviceIP();
-     GetOnewords();
+    GetDeviceIP();
+    GetOnewords();
 }
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
@@ -471,29 +536,28 @@ QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 
 void MainWindow::wifiLaunch()
 {
-//    QString res;
-//    QStringList arguments;
-//    arguments.clear();
-//    QprocessCommand("wifi_daemon", res, arguments);
-//    qDebug() << "wifi_daemon : " << res;
-//    arguments.clear();
-//    QprocessCommand("ifconfig", res, arguments);
-//    qDebug() << "ifconfig : " << res;
-//    arguments.clear();
-//    arguments << "-o";
-//    arguments << "sta";
-//    QprocessCommand("wifi", res, arguments);
-//    qDebug() << "wifi open : " << res;
+    //    QString res;
+    //    QStringList arguments;
+    //    arguments.clear();
+    //    QprocessCommand("wifi_daemon", res, arguments);
+    //    qDebug() << "wifi_daemon : " << res;
+    //    arguments.clear();
+    //    QprocessCommand("ifconfig", res, arguments);
+    //    qDebug() << "ifconfig : " << res;
+    //    arguments.clear();
+    //    arguments << "-o";
+    //    arguments << "sta";
+    //    QprocessCommand("wifi", res, arguments);
+    //    qDebug() << "wifi open : " << res;
 
-//    arguments.clear();
-//    arguments << "-t";
-//    arguments << "ThanksGivingDay_111";
-//    QprocessCommand("wifi", res, arguments);
-//    qDebug() << "wifi -t : " << res;
+    //    arguments.clear();
+    //    arguments << "-t";
+    //    arguments << "ThanksGivingDay_111";
+    //    QprocessCommand("wifi", res, arguments);
+    //    qDebug() << "wifi -t : " << res;
     system("wifi_daemon\n");
     system("wifi -o sta\n");
-    system("wifi -c ThanksGivingDay_111 Zz123456\n");//todo
-
+    system("wifi -c ThanksGivingDay_111 Zz123456\n"); // todo
 }
 
 void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
@@ -517,7 +581,7 @@ void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 {
     qDebug() << s_back.Message;
-    static int errcnt =0;
+    static int errcnt = 0;
     QString jsonString = s_back.Message;
 
     QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
@@ -529,7 +593,7 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 
     // 获取根对象
     QJsonObject jsonObj = doc.object();
- //   QStringList getUrl;
+    //   QStringList getUrl;
     // 判断 code 是否为 200
     if (jsonObj.value("code").toInt() == 200)
     {
@@ -540,10 +604,9 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         for (const QJsonValue &value : resArray)
         {
 
-                qDebug() << value.toString();
-                getUrl.append(value.toString());
-                count++;
-
+            qDebug() << value.toString();
+            getUrl.append(value.toString());
+            count++;
         }
         picGetcnt = count;
         DownloadAudioPctrue(getUrl.at(picSearchCnt++));
@@ -552,9 +615,8 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
     {
 
         qDebug() << "Code is not 200";
-         if (doc.object().value("msg").toString().contains("参数过长"))
-         {
-          
+        if (doc.object().value("msg").toString().contains("参数过长"))
+        {
 
             QString fixKeyword;
             if (Playing_Album.length() <= Playing_Artist.length())
@@ -565,68 +627,68 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 
                 fixKeyword = Playing_Artist;
 
-            if (fixKeyword.length() >24)
+            if (fixKeyword.length() > 24)
             {
 
-               fixKeyword= fixKeyword.left(24);
+                fixKeyword = fixKeyword.left(24);
             }
 
-             QRegExp regex("[^A-Za-z0-9]");
-             fixKeyword= fixKeyword.replace(regex, "");
-            qDebug() << "参数过长 校正后" <<fixKeyword;
-            if(errcnt++>= 10)
+            QRegExp regex("[^A-Za-z0-9]");
+            fixKeyword = fixKeyword.replace(regex, "");
+            qDebug() << "参数过长 校正后" << fixKeyword;
+            if (errcnt++ >= 10)
+            {
+            }
+            else
+            {
+                badKeywords = true;
+                GetAlbumPicture(fixKeyword, "1", "10");
+            }
+            sleep(1);
+            return -1;
+        }
+        else if (doc.object().value("msg").toString().contains("Syntax error"))
+        {
+            static bool isAlbum = false;
+            QRegExp regex("[^A-Za-z0-9]");
+            QString fixKeyword;
+            if (isAlbum)
+                fixKeyword = Playing_Album.replace(regex, "");
+            else
+            {
+                fixKeyword = Playing_Artist.replace(regex, "");
+            }
+            if (fixKeyword.length() > 24)
             {
 
+                fixKeyword = fixKeyword.left(24);
             }
-            else{
-            badKeywords= true;
-            GetAlbumPicture(fixKeyword,"1","10");
+            isAlbum = true;
+            GetAlbumPicture(fixKeyword, "1", "1");
+        }
+        else if (doc.object().value("msg").toString().contains("Control character error"))
+        {
+            static bool isAlbum = false;
+            QRegExp regex("[^A-Za-z0-9]");
+            QString fixKeyword;
+            if (isAlbum)
+                fixKeyword = Playing_Album.replace(regex, "");
+            else
+            {
+                fixKeyword = Playing_Artist.replace(regex, "");
             }
-        sleep(1);
-        return -1;
-    }
-         else if (doc.object().value("msg").toString().contains("Syntax error"))
-         {
-             static bool isAlbum = false;
-             QRegExp regex("[^A-Za-z0-9]");
-             QString fixKeyword;
-             if(isAlbum)
-             fixKeyword= Playing_Album.replace(regex, "");
-             else
-             {
-             fixKeyword= Playing_Artist.replace(regex, "");
-             }
-             if (fixKeyword.length() >24)
-             {
+            if (fixKeyword.length() > 24)
+            {
 
-                fixKeyword= fixKeyword.left(24);
-             }
-            isAlbum=true;
-            GetAlbumPicture(fixKeyword,"1","1");
-           }
-         else if(doc.object().value("msg").toString().contains("Control character error"))
-         {
-             static bool isAlbum = false;
-             QRegExp regex("[^A-Za-z0-9]");
-             QString fixKeyword;
-             if(isAlbum)
-             fixKeyword= Playing_Album.replace(regex, "");
-             else
-             {
-             fixKeyword= Playing_Artist.replace(regex, "");
-             }
-             if (fixKeyword.length() >24)
-             {
-
-                fixKeyword= fixKeyword.left(24);
-             }
-            isAlbum=true;
-            GetAlbumPicture(fixKeyword,"1","1");
-         }
-         else /*if(doc.object().value("msg").toString().contains("请求失败，请重试！"))*/
-         {
-            GetAlbumPicture(Playing_Album,"1","10");
-         }
+                fixKeyword = fixKeyword.left(24);
+            }
+            isAlbum = true;
+            GetAlbumPicture(fixKeyword, "1", "1");
+        }
+        else /*if(doc.object().value("msg").toString().contains("请求失败，请重试！"))*/
+        {
+            GetAlbumPicture(Playing_Album, "1", "10");
+        }
         sleep(1);
         return -1;
     }
@@ -668,12 +730,12 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
     {
         if (isImageWhite(image, 200))
         {
-            qDebug() << "this picture is not good ,try to refind one  " ;
-            qDebug() << "current count :" << picSearchCnt<< "total source: "<< picGetcnt;
-            if(picSearchCnt< picGetcnt)
+            qDebug() << "this picture is not good ,try to refind one  ";
+            qDebug() << "current count :" << picSearchCnt << "total source: " << picGetcnt;
+            if (picSearchCnt < picGetcnt)
             {
-            DownloadAudioPctrue(getUrl.at(picSearchCnt++));
-            return ;
+                DownloadAudioPctrue(getUrl.at(picSearchCnt++));
+                return;
             }
         }
 
@@ -681,16 +743,15 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
 
         QPixmap pixmap = QPixmap::fromImage(image);
 
+#ifdef RotationLabel
+        label->move(530, 40); // 设置标签位置
 
-            
-            label->move(530, 40);  // 设置标签位置
-
-
-            label->loadImage(pixmap);  // 设置标签的图片
-            label->show();
-            getUrl.clear();
-            picSearchCnt =0;
-            picGetcnt= 0;
+        label->loadImage(pixmap); // 设置标签的图片
+        label->show();
+#endif
+        getUrl.clear();
+        picSearchCnt = 0;
+        picGetcnt = 0;
     }
     else
     {

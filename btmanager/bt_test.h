@@ -103,8 +103,11 @@ extern "C" {
 #endif
 
 extern btmg_track_info_t total_info_audio;
+extern int playing_len ;
+extern int playing_pos ;
+extern btmg_avrcp_play_state_t get_state;
 extern int trackUpdate;
-
+extern int switchFlag;
 /*gatt client*/
 void bt_gatt_client_register_callback(btmg_callback_t *cb);
 int bt_gatt_client_init();
