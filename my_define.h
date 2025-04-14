@@ -15,6 +15,10 @@
 #define URL_IP_QUERY            "http://124.222.204.22/api/ip/chaapi.php"
 #define URL_HISTORY_TODAY       "http://vip.apihz.cn/api/time/getday.php"
 #define URL_WEATHER_IP          "http://vip.apihz.cn/api/tianqi/tqybmoji15ip.php"
+#define URL_HOTSEARCH           "http://vip.apihz.cn/api/xinwen/baidu.php"
+#define URL_DATETODAY           "http://vip.apihz.cn/api/time/getapi.php"
+#define URL_WEATHERTODAY           "http://vip.apihz.cn/api/tianqi/tqybip.php"
+
 
 enum HTTP_TYPE {
     HOT_SEACH_WEIBO,
@@ -26,6 +30,9 @@ enum HTTP_TYPE {
     HISTORY_TODAY,
     WEATHER_IP,
     PICTURE_DOWNLOAD,
+    HOTSEARCH,
+    DATETODAY,
+    WEATHERTODAY,
     UNKNOW_OPT //9
 };
 enum AUDIO_STATUS {

@@ -5,8 +5,7 @@
 //#include <QMediaPlayer>
 #include "my_define.h"
 #include "rotatingroundedlabel.h"
-
-
+#include <QDateTime>
 #define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
 #define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
 
@@ -41,6 +40,12 @@ public:
     void disposeIP(S_HTTP_RESPONE s_back);
     void disposeWeatherInfo(QString jsonString);
     QVector<WeatherData> getWeatherData(const QString &jsonString, QString &place);
+    void GetHotSearch();
+    void DisposeHotSearch(S_HTTP_RESPONE s_back);
+    void GetDateToday();
+    void DisposeDate(S_HTTP_RESPONE s_back);
+    void disposeWeathertoday(S_HTTP_RESPONE s_back);
+    void GetWeatherToday();
 public slots:
     void displayAudioMeta();
     void UserAddFinger();
@@ -70,6 +75,7 @@ private:
     int positonoffset =0;//平滑进度条
     int offsetReduce =5;//平滑进度条
     QStringList getUrl;
+    QDateTime dateTime;
 };
 
 

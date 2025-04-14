@@ -21,20 +21,21 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">background-color: rgb(0, 0, 0);</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="label_artist">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>270</y>
-      <width>391</width>
+      <x>210</x>
+      <y>220</y>
+      <width>561</width>
       <height>34</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(193, 125, 17);</string>
+     <string notr="true">
+color: rgb(243, 243, 243);</string>
     </property>
     <property name="text">
      <string>歌手 </string>
@@ -43,15 +44,15 @@
    <widget class="QLabel" name="label_aumble">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>270</y>
-      <width>381</width>
+      <x>210</x>
+      <y>260</y>
+      <width>561</width>
       <height>34</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">font: 11pt &quot;Ubuntu Condensed&quot;;
-background-color: rgb(117, 80, 123);</string>
+     <string notr="true">
+color: rgb(243, 243, 243);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
@@ -60,85 +61,47 @@ background-color: rgb(117, 80, 123);</string>
    <widget class="QLabel" name="label_title">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>310</y>
-      <width>801</width>
+      <width>811</width>
       <height>34</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Ubuntu Light</family>
+     </font>
+    </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(52, 101, 164);</string>
+     <string notr="true">
+color: rgb(243, 243, 243);</string>
     </property>
     <property name="text">
      <string>专辑  </string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_position">
+   <widget class="QLabel" name="label_HotSearch">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>190</y>
-      <width>121</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(211, 215, 207);</string>
-    </property>
-    <property name="text">
-     <string>专辑  </string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_duration">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>190</y>
-      <width>151</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(52, 101, 164);</string>
-    </property>
-    <property name="text">
-     <string>专辑  </string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_soulwords">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>90</y>
+      <x>220</x>
+      <y>0</y>
       <width>561</width>
-      <height>34</height>
+      <height>21</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(211, 215, 207);
-font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
-    </property>
-    <property name="text">
-     <string>心灵毒鸡汤</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_IP">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>50</y>
-      <width>441</width>
-      <height>31</height>
-     </rect>
+    <property name="font">
+     <font>
+      <pointsize>6</pointsize>
+     </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(115, 210, 22);</string>
+     <string notr="true">color: rgb(243, 243, 243);</string>
     </property>
     <property name="text">
-     <string>IP</string>
+     <string>日本首相对特朗普关税发出强烈警告</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_weather">
+   <widget class="QLabel" name="label_aumblePic">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -171,8 +134,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>10</y>
+      <x>10</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -187,8 +150,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>10</y>
+      <x>40</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -203,8 +166,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>10</y>
+      <x>70</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -219,8 +182,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>10</y>
+      <x>100</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -235,8 +198,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>10</y>
+      <x>130</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -251,8 +214,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>10</y>
+      <x>160</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -267,8 +230,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>10</y>
+      <x>190</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -283,8 +246,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>10</y>
+      <x>220</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -299,8 +262,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>10</y>
+      <x>250</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -315,8 +278,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_10">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>10</y>
+      <x>280</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -331,8 +294,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>10</y>
+      <x>310</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -347,8 +310,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_12">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>10</y>
+      <x>340</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -363,8 +326,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_13">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>10</y>
+      <x>370</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -379,8 +342,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>10</y>
+      <x>430</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -395,8 +358,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_15">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>10</y>
+      <x>400</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -411,8 +374,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_16">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>10</y>
+      <x>460</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -427,8 +390,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_17">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>10</y>
+      <x>490</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -443,8 +406,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_18">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>10</y>
+      <x>520</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -459,8 +422,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_19">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>10</y>
+      <x>550</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -475,8 +438,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_20">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>10</y>
+      <x>580</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -491,8 +454,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_21">
     <property name="geometry">
      <rect>
-      <x>600</x>
-      <y>10</y>
+      <x>610</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -507,8 +470,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_22">
     <property name="geometry">
      <rect>
-      <x>630</x>
-      <y>10</y>
+      <x>640</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -523,8 +486,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_23">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>10</y>
+      <x>670</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -539,8 +502,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_24">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>10</y>
+      <x>700</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -555,8 +518,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_25">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>10</y>
+      <x>730</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -571,8 +534,8 @@ font: 75 11pt &quot;Ubuntu Condensed&quot;;</string>
    <widget class="QLabel" name="label_26">
     <property name="geometry">
      <rect>
-      <x>750</x>
-      <y>10</y>
+      <x>760</x>
+      <y>350</y>
       <width>21</width>
       <height>16</height>
      </rect>
@@ -617,18 +580,61 @@ border-radius:2px;</string>
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_progressbar_point">
+   <widget class="QLabel" name="label_Weather_today">
     <property name="geometry">
      <rect>
-      <x>750</x>
-      <y>410</y>
-      <width>21</width>
-      <height>21</height>
+      <x>500</x>
+      <y>30</y>
+      <width>281</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>6</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(243, 243, 243);
+background-color: rgb(114, 159, 207);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_Weather_future">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>130</y>
+      <width>281</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>3</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(243, 243, 243);
+background-color: rgb(114, 159, 207);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_date">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>30</y>
+      <width>271</width>
+      <height>131</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(115, 210, 22);
-border-radius:10px;</string>
+     <string notr="true">color: rgb(243, 243, 243);</string>
     </property>
     <property name="text">
      <string/>
@@ -636,11 +642,8 @@ border-radius:10px;</string>
    </widget>
    <zorder>label_artist</zorder>
    <zorder>label_aumble</zorder>
-   <zorder>label_position</zorder>
-   <zorder>label_duration</zorder>
-   <zorder>label_soulwords</zorder>
-   <zorder>label_IP</zorder>
-   <zorder>label_weather</zorder>
+   <zorder>label_HotSearch</zorder>
+   <zorder>label_aumblePic</zorder>
    <zorder>label</zorder>
    <zorder>label_2</zorder>
    <zorder>label_3</zorder>
@@ -669,8 +672,10 @@ border-radius:10px;</string>
    <zorder>label_26</zorder>
    <zorder>label_title</zorder>
    <zorder>label_progressbar_back</zorder>
-   <zorder>label_progressbar_point</zorder>
    <zorder>label_progressbar_up</zorder>
+   <zorder>label_Weather_today</zorder>
+   <zorder>label_Weather_future</zorder>
+   <zorder>label_date</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

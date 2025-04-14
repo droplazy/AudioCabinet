@@ -21,6 +21,8 @@
 #include <QtDBus/QDBusReply>
 #include "fingerthread.h"
 #include "bt_manager.h"
+#include <QJsonObject>
+#include <QJsonArray>
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -153,7 +155,18 @@ void MainWindow::GetOnewords()
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
 }
+void MainWindow::GetHotSearch()
+{
 
+    QUrl url(URL_HOTSEARCH);
+    QUrlQuery query;
+    query.addQueryItem("id", API_ID);
+    query.addQueryItem("key", API_KEY);
+  //  query.addQueryItem("words", "心灵鸡汤");
+
+    url.setQuery(query); // 设置 URL 的查询部分
+    p_http->sendGetRequest(url);
+}
 void MainWindow::GetDeviceIP()
 {
     QUrl url(URL_IP_QUERY);
@@ -163,7 +176,28 @@ void MainWindow::GetDeviceIP()
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
 }
+void MainWindow::GetDateToday()
+{
+    QUrl url(URL_DATETODAY);
+    QUrlQuery query;
+    query.addQueryItem("id", API_ID);
+    query.addQueryItem("key", API_KEY);
+    query.addQueryItem("type", "1");
 
+    url.setQuery(query); // 设置 URL 的查询部分
+    p_http->sendGetRequest(url);
+}
+void MainWindow::GetWeatherToday()
+{
+    QUrl url(URL_WEATHERTODAY);
+    QUrlQuery query;
+    query.addQueryItem("id", API_ID);
+    query.addQueryItem("key", API_KEY);
+    query.addQueryItem("ip", "101.68.34.143");
+
+    url.setQuery(query); // 设置 URL 的查询部分
+    p_http->sendGetRequest(url);
+}
 void MainWindow::GetWeatherOnIp()
 {
     QUrl url(URL_WEATHER_IP);
@@ -207,8 +241,9 @@ void MainWindow::disposeIP(S_HTTP_RESPONE s_back)
         // 输出提取到的 IP 地址
         qDebug() << "IP Address:" << ip;
         DeviceIP = ip;
-        ui->label_IP->setText(DeviceIP);
+        //ui->label_IP->setText(DeviceIP);
         GetWeatherOnIp();
+        GetWeatherToday();
     }
     else
     {
@@ -219,28 +254,99 @@ void MainWindow::disposeIP(S_HTTP_RESPONE s_back)
 void MainWindow::disposeWeatherInfo(QString jsonString)
 {
     p_http->printChache();
+    qDebug() << jsonString;
+    // 解析 JSON 数据
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+    if (!doc.isObject()) {
+        qDebug() << "Invalid JSON data.";
+        return;
+    }
 
-    QVector<WeatherData> weatherData = getWeatherData(jsonString, localPlace);
-    QString showWeather;
-    // 如果返回的天气数据不为空，则输出相关信息
-    if (!weatherData.isEmpty())
-    {
-        qDebug() << "地点：" << localPlace;
-        for (const WeatherData &data : weatherData)
-        {
-            qDebug() << "日期:" << data.week2 << data.week1;
-            showWeather += "日期:" + data.week2 + data.week1 + "\n";
-            qDebug() << "白天气象:" << data.wea1 << "夜间天气:" << data.wea2;
-            showWeather += "白天气象:" + data.wea1 + "夜间天气:" + data.wea2 + "\n";
-            qDebug() << "白天温度:" << data.wendu1 << "夜间温度:" << data.wendu2;
-            showWeather += "白天温度:" + data.wendu1 + "夜间温度:" + data.wendu2 + "\n";
+    QJsonObject jsonObj = doc.object();
+    QJsonArray dataArray = jsonObj["data"].toArray();
+
+    // 获取当前日期、明天和后天的日期
+    QDateTime currentDate =dateTime;
+    QDateTime tomorrow = currentDate.addDays(1);
+    QDateTime dayAfterTomorrow = currentDate.addDays(2);
+
+    // 获取日期字符串，格式化为"MM/dd"
+    QString currentDateString = currentDate.toString("MM/dd");
+    QString tomorrowDateString = tomorrow.toString("MM/dd");
+    QString dayAfterTomorrowDateString = dayAfterTomorrow.toString("MM/dd");
+
+    // 遍历数据，找出今天、明天和后天的天气
+    QString todayMaxTemp, todayMinTemp;
+    QString tomorrowMaxTemp, tomorrowMinTemp;
+    QString dayAfterTomorrowMaxTemp, dayAfterTomorrowMinTemp;
+
+    for (const QJsonValue& value : dataArray) {
+        QJsonObject dayObj = value.toObject();
+        QString date = dayObj["week2"].toString();
+
+        if (date == currentDateString) {
+            todayMaxTemp = dayObj["wendu1"].toString();
+            todayMinTemp = dayObj["wendu2"].toString();
         }
+        if (date == tomorrowDateString) {
+            tomorrowMaxTemp = dayObj["wendu1"].toString();
+            tomorrowMinTemp = dayObj["wendu2"].toString();
+        }
+        if (date == dayAfterTomorrowDateString) {
+            dayAfterTomorrowMaxTemp = dayObj["wendu1"].toString();
+            dayAfterTomorrowMinTemp = dayObj["wendu2"].toString();
+        }
+    }
+
+    // 输出结果
+    qDebug() << "Today: Max Temp: " << todayMaxTemp << ", Min Temp: " << todayMinTemp;
+    qDebug() << "Tomorrow: Max Temp: " << tomorrowMaxTemp << ", Min Temp: " << tomorrowMinTemp;
+    qDebug() << "Day After Tomorrow: Max Temp: " << dayAfterTomorrowMaxTemp << ", Min Temp: " << dayAfterTomorrowMinTemp;
+    QString weatherInfo = QString("Today: Max Temp: %1, Min Temp: %2\n"
+                                 "Tomorrow: Max Temp: %3, Min Temp: %4\n"
+                                 "Day After Tomorrow: Max Temp: %5, Min Temp: %6")
+                                 .arg(todayMaxTemp)
+                                 .arg(todayMinTemp)
+                                 .arg(tomorrowMaxTemp)
+                                 .arg(tomorrowMinTemp)
+                                 .arg(dayAfterTomorrowMaxTemp)
+                                 .arg(dayAfterTomorrowMinTemp);
+
+    // 输出结果到qDebug()
+    qDebug() << weatherInfo;
+    ui->label_Weather_future->setText(weatherInfo);
+}
+
+void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());
+
+    // 如果解析成功，提取 msg 字段
+    if (doc.isObject())
+    {
+       /* QJsonObject obj = doc.object();
+        QString msg = obj.value("msg").toString(); // 提取 msg 字段
+        qDebug() << "msg字段的值:" << msg;
+
+        QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());*/
+        QJsonObject rootObj = doc.object();
+
+        // 提取所需字段
+        double temperature = rootObj["temperature"].toDouble();
+        QString place = rootObj["place"].toString();
+        QString weather1 = rootObj["weather1"].toString();
+
+        // 输出结果
+        qDebug() << "Temperature:" << temperature;
+        qDebug() << "Place:" << place;
+        qDebug() << "Weather1:" << weather1;
+
+        ui->label_Weather_today->setText("Temperature:" +  QString::number(temperature)+"\n"+"Place:"+ place+"\n"+"Weather:"+ weather1);
     }
     else
     {
-        qDebug() << "无法获取有效的天气数据！";
+        qDebug() << "无效的 JSON 格式";
     }
-    ui->label_weather->setText(showWeather);
 }
 
 #include "btmanager/bt_test.h"
@@ -248,10 +354,11 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 void MainWindow::displayAudioMeta()
 {
     ui->label_aumble->setText(total_info_audio.album);
-
-    ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
+    ui->label_aumble->setStyleSheet("color:white;");
+    //ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
     // ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
     ui->label_title->setText(total_info_audio.title);
+    ui->label_title->setStyleSheet("color:white;");
     // qDebug() << "USER PLAY CHANGED !" <<Playing_Album << ": " << p_meta->Album   << "boolean:" <<p_meta->Album.contains(Playing_Album);
 
     if (Playing_Album != total_info_audio.album)
@@ -268,7 +375,9 @@ void MainWindow::displayAudioMeta()
         QString result = Playing_Artist + "+" + Playing_Album;
         GetAlbumPicture(result, "1", "10");
     }
+
     ui->label_artist->setText(total_info_audio.artist);
+    ui->label_artist->setStyleSheet("color:white;");
     //    if(p_meta->Status == "playing" && a_sta != PLAYING)
     //    {
     //        a_sta=PLAYING;
@@ -366,11 +475,11 @@ void MainWindow::displaySpectrum()
             // 只更改高度，保持宽度不变
             double original_min = 0;      // 原始数据的最小值
             double original_max = 600000; // 原始数据的最大值
-            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (450 - 1));
+            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (120 - 1));
             if (newHeight < 1)
                 newHeight = 1;
-            if (newHeight > 450)
-                newHeight = 450;
+            if (newHeight > 120)
+                newHeight = 120;
 
             //  int newHeight = scaled_value;
             //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
@@ -408,7 +517,7 @@ void MainWindow::displaySpectrum()
 
     setPlayProgress(currentPosition);
 
-    qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
+  //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
 
 #endif
 }
@@ -488,6 +597,19 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
     {
         disposeWeatherInfo(s_back.Message);
     }
+    else if (s_back.Title == HOTSEARCH)
+    {
+        DisposeHotSearch(s_back);
+    }
+    else if (s_back.Title == DATETODAY)
+    {
+        DisposeDate(s_back);
+    }
+    else if (s_back.Title == WEATHERTODAY)
+    {
+        //DisposeDate(s_back);
+        disposeWeathertoday(s_back);
+    }
     else
     {
         qDebug() << s_back.Title;
@@ -509,7 +631,10 @@ void MainWindow::flushNetUI()
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
 
     GetDeviceIP();
-    GetOnewords();
+    GetHotSearch();
+    GetDateToday();
+    GetWeatherToday();
+    //GetOnewords();
 }
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
@@ -570,14 +695,84 @@ void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
         QJsonObject obj = doc.object();
         QString msg = obj.value("msg").toString(); // 提取 msg 字段
         qDebug() << "msg字段的值:" << msg;
-        ui->label_soulwords->setText(msg);
+       // ui->label_soulwords->setText(msg);
     }
     else
     {
         qDebug() << "无效的 JSON 格式";
     }
 }
+void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());
 
+    // 如果解析成功，提取 msg 字段
+    if (doc.isObject())
+    {
+        QJsonObject obj = doc.object();
+        QString msg = obj.value("msg").toString(); // 提取 msg 字段
+        qDebug() << "date msg字段的值:" << msg;
+
+        qint64 timestamp = msg.toLongLong();
+
+            // 将时间戳转换为 QDateTime 对象
+            dateTime = QDateTime::fromTime_t(timestamp);
+
+            // 获取年月日，存入数组
+            int year = dateTime.date().year();
+            int month = dateTime.date().month();
+            int day = dateTime.date().day();
+            int hour = dateTime.time().hour();
+            int minute = dateTime.time().minute();
+            int second = dateTime.time().second();
+
+            // 输出年月日为数组形式
+            QString dateFormatted = QString("%1/%2/%3").arg(year).arg(month).arg(day);
+            // 输出时分秒为 "hh:mm:ss" 的格式
+            QString timeFormatted = QString("%1:%2:%3").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0')).arg(second, 2, 10, QChar('0'));
+
+            // 打印结果
+            qDebug() << "Formatted Date:" << dateFormatted;
+            qDebug() << "Formatted Time:" << timeFormatted;
+
+        ui->label_date->clear();
+        ui->label_date->setText(timeFormatted+"\n\n"+dateFormatted);
+    }
+    else
+    {
+        qDebug() << "无效的 JSON 格式";
+    }
+}
+void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());
+
+    // 如果解析成功，提取 msg 字段
+    if (doc.isObject())
+    {
+        QJsonObject obj = doc.object();
+        QStringList titles;
+
+        // Extract the "data" array from the JSON object
+        QJsonArray dataArray = obj["data"].toArray();
+
+        // Iterate over the array and extract each title
+        for (const QJsonValue &value : dataArray) {
+            QJsonObject item = value.toObject();
+            QString title = item["query"].toString();
+            titles.append(title);
+        }
+
+        // Output the titles for debugging purposes
+        qDebug() << titles;
+
+        ui->label_HotSearch->setText(titles.at(0));
+    }
+    else
+    {
+        qDebug() << "无效的 JSON 格式";
+    }
+}
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 {
     qDebug() << s_back.Message;
@@ -741,14 +936,21 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
 
         // 将 QImage 转换为 QPixmap
 
-        QPixmap pixmap = QPixmap::fromImage(image);
+        
 
 #ifdef RotationLabel
+        QPixmap pixmap = QPixmap::fromImage(image);
         label->move(530, 40); // 设置标签位置
 
         label->loadImage(pixmap); // 设置标签的图片
         label->show();
+        
 #endif
+  //  QImage *img = new QImage;                       //新建一个image对象
+   // img->load(":/picture/faild.png");               //将图像资源载入对象img，注意路径，可点进图片右键复制路径
+    ui->label_aumblePic->setPixmap(QPixmap::fromImage(image)); //将图片放入label，使用setPixmap,注意指针*img
+    ui->label_aumblePic->setAlignment(Qt::AlignCenter);
+    ui->label_aumblePic->setScaledContents(true);
         getUrl.clear();
         picSearchCnt = 0;
         picGetcnt = 0;

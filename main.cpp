@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
       w->setWindowFlags (Qt::FramelessWindowHint);
       QGraphicsView *view = new QGraphicsView(scene);
       view->setWindowFlags (Qt::FramelessWindowHint);
-      view->setGeometry(-5,-5,485,805);
+      view->setGeometry(-2,-2,485,805);
       //   view->resize(250,330);
       view->show();
     return a.exec();

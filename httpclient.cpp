@@ -101,6 +101,12 @@ void HttpClient::onFinished(QNetworkReply *reply)
                 GetRespone.Title = HISTORY_TODAY;
             else if(reply->url().toString().contains(URL_WEATHER_IP)) // i03piccdn.sogoucdn.com
                 GetRespone.Title = WEATHER_IP;
+            else if(reply->url().toString().contains(URL_HOTSEARCH)) // i03piccdn.sogoucdn.com
+                GetRespone.Title = HOTSEARCH;
+            else if(reply->url().toString().contains(URL_DATETODAY)) // i03piccdn.sogoucdn.com
+                GetRespone.Title = DATETODAY;
+            else if(reply->url().toString().contains(URL_WEATHERTODAY)) // i03piccdn.sogoucdn.com
+                GetRespone.Title = WEATHERTODAY;
             else
                 GetRespone.Title = UNKNOW_OPT;
         }
