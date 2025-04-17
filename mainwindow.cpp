@@ -125,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     label = new RotatingRoundLabel(80, this); // 创建一个半径为100的圆形标签
 
 #endif
-    setPlayProgress(0);
+    //setPlayProgress(0);
     QTimer *timer = new QTimer();
     /* connect(timer, &QTimer::timeout, this, [](){
          qDebug() << "Timeout aaatriggered!";
@@ -133,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
      });*/
     connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
     timer->start(5); // 每20ms更新一次（可根据需要调整旋转速度）
+    CreatSpectrum();
 }
 
 MainWindow::~MainWindow()
@@ -197,6 +198,91 @@ void MainWindow::GetWeatherToday()
 
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
+}
+
+void MainWindow::initSepctrum()
+{
+    for (int i = 1; i <= 72; ++i)
+    {
+        // 使用 findChild 动态查找每个 QLabel 对象
+        QString labelName = QString("label_spectrum_%1").arg(i); // 动态构造标签名称
+        QLabel *a_label = this->findChild<QLabel *>(labelName);
+
+        if (a_label)
+        { // 如果标签存在
+
+            QPoint currentPos = a_label->pos();
+
+            a_label->setGeometry(currentPos.x(),430,14,120);
+        }
+        else
+        {
+               qDebug() << labelName << "not found!";
+        }
+    }
+}
+// 设置 QLabel 的字体和大小（可选）
+//   label->setStyleSheet("font-size: 20px; font-weight: bold; color: blue;");
+void MainWindow::CreatSpectrum()
+{
+    int spacing = 2;
+    int x = 3;
+    int total_labels = 61;  // 假设有61个标签
+    int center_index = total_labels / 2;  // 计算中间标签的索引
+
+    QImage *img_1 = new QImage;  // 新建一个image对象
+    img_1->load(":/Spectrum_single.png");  // 将图像资源载入对象img，注意路径
+    QImage *img_2 = new QImage;  // 新建一个image对象
+    img_2->load(":/Spectrum_single2.png");  // 将图像资源载入对象img，注意路径
+
+    // 计算标签的位置：从中间开始依次向两边散开
+    for (int i = 0; i < total_labels; i++) {
+        int offset = i / 2;  // 偏移量，用于计算标签的位置
+        int label_position;
+
+        // 如果是偶数索引，表示从中间往左放
+        if (i % 2 == 0) {
+            label_position = center_index - offset;
+        } else {  // 如果是奇数索引，表示从中间往右放
+            label_position = center_index + offset;
+        }
+
+        // 创建并设置 labels_bottom
+        labels_bottom[i] = new QLabel(this);
+        labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
+        labels_bottom[i]->move(x + label_position * (11 + spacing), 369);  // 设置 QLabel 的位置
+        labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
+        labels_bottom[i]->resize(11, 111);
+
+        // 创建并设置 labels_top
+        labels_top[i] = new QLabel(this);
+        labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1));  // 显式设置 objectName
+        labels_top[i]->move(x + label_position * (11 + spacing), 388);  // 设置 QLabel 的位置
+        labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));
+        labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;");  // 可选样式
+        labels_top[i]->raise();  // 将 labels_top 放在最上层
+        labels_top[i]->resize(11, 92);
+
+        // qDebug() << i << labels_top[i]->objectName();
+    }
+
+    // 创建进度条标签
+    label_progressbar_bottom = new QLabel(QString("label_progressbar_bottom"), this);
+    label_progressbar_top = new QLabel(QString("label_progressbar_top"), this);
+
+    label_progressbar_top->resize(800, 5);
+    label_progressbar_bottom->resize(800, 5);
+
+    label_progressbar_top->clear();
+    label_progressbar_bottom->clear();
+
+    label_progressbar_top->setStyleSheet("background-color: rgb(46, 87, 47);border-radius:2px;");  // 可选样式
+    label_progressbar_bottom->setStyleSheet("background-color: rgb(136, 138, 133);");  // 可选样式
+
+    label_progressbar_bottom->move(0, 200);
+    label_progressbar_bottom->raise();
+    label_progressbar_top->move(0, 200);
+    label_progressbar_top->raise();
 }
 void MainWindow::GetWeatherOnIp()
 {
@@ -400,98 +486,57 @@ void MainWindow::UserAddFinger()
 {
     p_finger->AutoEnroll();
 }
+/*
+// 使用 findChild 动态查找每个 QLabel 对象
+QString labelName = QString("spectrum_bottom_%1").arg(i); // 动态构造标签名称
+QLabel *a_label = this->findChild<QLabel *>(labelName);
+
+QLabel *a_label = nullptr;
+if (labelName == "label_spectrum_1")
+    a_label = ui->label_spectrum_1;
+else if (labelName == "label_spectrum_2")
+    a_label = ui->label_spectrum_2;
+*/
 
 void MainWindow::displaySpectrum()
 {
     if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
     {
 
+       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
 
 #if 1
-    for (int i = 0; i < 30; ++i)
+    for (int i = 1; i <= 61; ++i)
     {
-        // 使用 findChild 动态查找每个 QLabel 对象
-        QString labelName = QString("label_%1").arg(i); // 动态构造标签名称
 
-        QLabel *a_label = nullptr;
-        if (labelName == "label")
-            a_label = ui->label;
-        // else if (labelName == "label_1") label = ui->label;
-        else if (labelName == "label_2")
-            a_label = ui->label_2;
-        else if (labelName == "label_3")
-            a_label = ui->label_3;
-        else if (labelName == "label_4")
-            a_label = ui->label_4;
-        else if (labelName == "label_5")
-            a_label = ui->label_5;
-        else if (labelName == "label_6")
-            a_label = ui->label_6;
-        else if (labelName == "label_7")
-            a_label = ui->label_7;
-        else if (labelName == "label_8")
-            a_label = ui->label_8;
-        else if (labelName == "label_9")
-            a_label = ui->label_9;
-        else if (labelName == "label_10")
-            a_label = ui->label_10;
-        else if (labelName == "label_11")
-            a_label = ui->label_11;
-        else if (labelName == "label_12")
-            a_label = ui->label_12;
-        else if (labelName == "label_13")
-            a_label = ui->label_13;
-        else if (labelName == "label_14")
-            a_label = ui->label_14;
-        else if (labelName == "label_15")
-            a_label = ui->label_15;
-        else if (labelName == "label_16")
-            a_label = ui->label_16;
-        else if (labelName == "label_17")
-            a_label = ui->label_17;
-        else if (labelName == "label_18")
-            a_label = ui->label_18;
-        else if (labelName == "label_19")
-            a_label = ui->label_19;
-        else if (labelName == "label_20")
-            a_label = ui->label_20;
-        else if (labelName == "label_21")
-            a_label = ui->label_21;
-        else if (labelName == "label_22")
-            a_label = ui->label_22;
-        else if (labelName == "label_23")
-            a_label = ui->label_23;
-        else if (labelName == "label_24")
-            a_label = ui->label_24;
-        else if (labelName == "label_25")
-            a_label = ui->label_25;
-        else if (labelName == "label_26")
-            a_label = ui->label_26;
-
-        if (a_label)
+        if (labels_top[i-1])
         { // 如果标签存在
             // 只更改高度，保持宽度不变
             double original_min = 0;      // 原始数据的最小值
             double original_max = 600000; // 原始数据的最大值
-            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (120 - 1));
+            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i-1] - original_min) / (original_max - original_min)) * (92  - 1));
             if (newHeight < 1)
                 newHeight = 1;
-            if (newHeight > 120)
-                newHeight = 120;
+            if (newHeight > 92)
+                newHeight = 92;
 
+            // qDebug() << i << labels_top[i-1]->objectName();
             //  int newHeight = scaled_value;
             //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
 
-            a_label->resize(a_label->width(), newHeight);
+           // a_label->resize(a_label->width(), newHeight); 370 ~430 60
+            QPoint currentPos = labels_top[i-1]->pos();
+
+            labels_top[i-1]->move(currentPos.x(),480-newHeight);
         }
         else
         {
-            //   qDebug() << labelName << "not found!";
+               qDebug() << i<< "not found!";
         }
     }
-    if (switchFlag)
+   /* if (switchFlag)
     {
 
         if (positonoffset == 0 || abs(positonoffset -playing_pos) >5000)
@@ -515,7 +560,7 @@ void MainWindow::displaySpectrum()
     positonoffset += offsetReduce;
     currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);
 
-    setPlayProgress(currentPosition);
+    setPlayProgress(currentPosition);*/
 
   //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
 
@@ -541,7 +586,7 @@ void MainWindow::ElcLockOption()
 void MainWindow::setPlayProgress(int current)
 {
     // ui->label_progressbar_point->setGeometry(current,453,20,20);
-    ui->label_progressbar_up->setGeometry(0, 460, current, 5);
+    label_progressbar_top->setGeometry(0, 460, current, 5);
 }
 
 void MainWindow::GetAlbumPicture(QString Artist, QString page, QString limit)
@@ -828,7 +873,7 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
                 fixKeyword = fixKeyword.left(24);
             }
 
-            QRegExp regex("[^A-Za-z0-9]");
+            QRegExp regex("[^A-Za-z0-9\\u4e00-\\u9fa5]");
             fixKeyword = fixKeyword.replace(regex, "");
             qDebug() << "参数过长 校正后" << fixKeyword;
             if (errcnt++ >= 10)
@@ -845,7 +890,7 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         else if (doc.object().value("msg").toString().contains("Syntax error"))
         {
             static bool isAlbum = false;
-            QRegExp regex("[^A-Za-z0-9]");
+            QRegExp regex("[^A-Za-z0-9\\u4e00-\\u9fa5]");
             QString fixKeyword;
             if (isAlbum)
                 fixKeyword = Playing_Album.replace(regex, "");
@@ -863,8 +908,8 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         }
         else if (doc.object().value("msg").toString().contains("Control character error"))
         {
-            static bool isAlbum = false;
-            QRegExp regex("[^A-Za-z0-9]");
+       /*     static bool isAlbum = false;
+            QRegExp regex("[^A-Za-z0-9\\u4e00-\\u9fa5]");
             QString fixKeyword;
             if (isAlbum)
                 fixKeyword = Playing_Album.replace(regex, "");
@@ -877,8 +922,10 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 
                 fixKeyword = fixKeyword.left(24);
             }
-            isAlbum = true;
-            GetAlbumPicture(fixKeyword, "1", "1");
+            isAlbum = true;*/
+            QString result = Playing_Artist + "+" + Playing_Album;
+           // GetAlbumPicture(result, "1", "10");
+            GetAlbumPicture(result, "1", "1");
         }
         else /*if(doc.object().value("msg").toString().contains("请求失败，请重试！"))*/
         {
@@ -888,32 +935,7 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         return -1;
     }
 }
-/*            if (badKeywords)
-            {
 
-            QString fixKeyword;
-            if (Playing_Album.length() <= Playing_Artist.length())
-
-                fixKeyword = Playing_Album;
-
-            else
-
-                fixKeyword = Playing_Artist;
-
-            if (fixKeyword.length() >16)
-            {
-
-               fixKeyword= fixKeyword.left(16);
-            }
-
-            // QRegExp regex("[^A-Za-z0-9]");
-            // fixKeyword= fixKeyword.replace(regex, "");
-            qDebug() << "参数过长 校正后" <<fixKeyword;
-            badKeywords= true;
-            GetAlbumPicture(fixKeyword+"+album");
-            }
-            else
-            GetAlbumPicture(Playing_Album+" 封面");*/
 void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
 {
     QByteArray imageData = bytes;

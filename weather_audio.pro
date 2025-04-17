@@ -153,3 +153,6 @@ FORMS    += mainwindow.ui
 
 RESOURCES += \
     pic.qrc
+
+DISTFILES += \
+    Spectrum_single2.png

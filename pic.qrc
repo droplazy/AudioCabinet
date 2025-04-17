@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>0401094653.jpg</file>
+        <file>Spectrum_single.png</file>
+        <file>Spectrum_single2.png</file>
     </qresource>
 </RCC>

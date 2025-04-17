@@ -46,6 +46,8 @@ public:
     void DisposeDate(S_HTTP_RESPONE s_back);
     void disposeWeathertoday(S_HTTP_RESPONE s_back);
     void GetWeatherToday();
+    void initSepctrum();
+    void CreatSpectrum();
 public slots:
     void displayAudioMeta();
     void UserAddFinger();
@@ -76,6 +78,11 @@ private:
     int offsetReduce =5;//平滑进度条
     QStringList getUrl;
     QDateTime dateTime;
+    QLabel *labels_top[62];
+    QLabel *labels_bottom[62];
+    QLabel *label_progressbar_bottom;
+    QLabel *label_progressbar_top;
+
 };
 
 

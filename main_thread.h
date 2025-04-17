@@ -27,7 +27,7 @@ public:
     void SpectrumMetaData();
     void calculatePowerSpectrum(const char* pcmData, int sampleRate, int N);
 
-    double spectrumMeta[30]={0};
+    double spectrumMeta[72]={0};
 public slots:
     void checkNetworkStatus();
 
