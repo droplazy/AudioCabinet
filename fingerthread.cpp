@@ -25,8 +25,8 @@ void FingerThread::run()
     unsigned char message[128]={0};
     HandShakeCheck();
 
-    sleep(1);
-    AutoEnroll();
+    // sleep(1);
+    // AutoEnroll();
 
 
 

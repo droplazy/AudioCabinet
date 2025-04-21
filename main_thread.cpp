@@ -26,12 +26,12 @@ void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, in
 
           double frequency = i * sampleRate / N;
          // qDebug() << "Frequency:" << frequency << "Hz, Power (dB):" << power;
-         if (static_cast<int>(frequency) % 100 < 10 && frequency!=0)
+         if (static_cast<int>(frequency) % 125 < 10 && frequency!=0)
           {
             spectrumMeta[aa] =power;
            // qDebug() <<aa <<"frequency"<<frequency <<"spectrumMeta" <<spectrumMeta[aa];
             aa++;
-            if(aa >72)
+            if(aa >61)
             {
                 fftw_destroy_plan(plan);
                 fftw_free(in);

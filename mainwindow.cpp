@@ -127,12 +127,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #endif
     //setPlayProgress(0);
     QTimer *timer = new QTimer();
-    /* connect(timer, &QTimer::timeout, this, [](){
-         qDebug() << "Timeout aaatriggered!";
-       //  PULLDOWN_ELCLOCK;
-     });*/
     connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
-    timer->start(5); // 每20ms更新一次（可根据需要调整旋转速度）
+    timer->start(100); // 每20ms更新一次（可根据需要调整旋转速度）
+
+    QTimer *timer_2 = new QTimer();
+    connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
+    timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）
     CreatSpectrum();
 }
 
@@ -227,7 +227,7 @@ void MainWindow::CreatSpectrum()
 {
     int spacing = 2;
     int x = 3;
-    int total_labels = 61;  // 假设有61个标签
+    int total_labels = 60;  // 假设有61个标签
     int center_index = total_labels / 2;  // 计算中间标签的索引
 
     QImage *img_1 = new QImage;  // 新建一个image对象
@@ -244,30 +244,30 @@ void MainWindow::CreatSpectrum()
         if (i % 2 == 0) {
             label_position = center_index - offset;
         } else {  // 如果是奇数索引，表示从中间往右放
-            label_position = center_index + offset;
+            label_position = center_index + offset + 1;  // 在奇数位置加一个额外的偏移量，防止重叠
         }
 
         // 创建并设置 labels_bottom
         labels_bottom[i] = new QLabel(this);
         labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
-        labels_bottom[i]->move(x + label_position * (11 + spacing), 369);  // 设置 QLabel 的位置
+        labels_bottom[i]->move(x + label_position * (11 + spacing), 480 - 3);  // 设置 QLabel 的位置
         labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
         labels_bottom[i]->resize(11, 111);
 
         // 创建并设置 labels_top
         labels_top[i] = new QLabel(this);
         labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1));  // 显式设置 objectName
-        labels_top[i]->move(x + label_position * (11 + spacing), 388);  // 设置 QLabel 的位置
+        labels_top[i]->move(x + label_position * (11 + spacing), 480);  // 设置 QLabel 的位置
         labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));
         labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;");  // 可选样式
         labels_top[i]->raise();  // 将 labels_top 放在最上层
         labels_top[i]->resize(11, 92);
 
-        // qDebug() << i << labels_top[i]->objectName();
+        //qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
 
     // 创建进度条标签
-    label_progressbar_bottom = new QLabel(QString("label_progressbar_bottom"), this);
+    /*label_progressbar_bottom = new QLabel(QString("label_progressbar_bottom"), this);
     label_progressbar_top = new QLabel(QString("label_progressbar_top"), this);
 
     label_progressbar_top->resize(800, 5);
@@ -282,7 +282,7 @@ void MainWindow::CreatSpectrum()
     label_progressbar_bottom->move(0, 200);
     label_progressbar_bottom->raise();
     label_progressbar_top->move(0, 200);
-    label_progressbar_top->raise();
+    label_progressbar_top->raise();*/
 }
 void MainWindow::GetWeatherOnIp()
 {
@@ -481,6 +481,41 @@ void MainWindow::displayAudioMeta()
     qDebug("BT playing music genre: %s", total_info_audio.genre);
     qDebug("BT playing music duration: %s", total_info_audio.duration);
 }
+void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingFactor) {
+    // 使用加权移动平均来平滑数据
+    // smoothingFactor 表示平滑程度，取值范围 0 到 1，越接近 1 越平滑
+
+    const double MAX_VALUE = 99999999.0; // 设置最大值
+
+    std::vector<double> smoothedData(length);
+
+    // 第一个元素的平滑值就是它自己
+    smoothedData[0] = spectrumMeta[0];
+
+    // 对剩余元素进行平滑处理
+    for (int i = 1; i < length; i++) {
+        smoothedData[i] = smoothingFactor * spectrumMeta[i] + (1 - smoothingFactor) * smoothedData[i - 1];
+    }
+
+    // 找到平滑数据中的最大值
+    double maxSmoothedValue = *std::max_element(smoothedData.begin(), smoothedData.end());
+
+    // 如果最大值超过了设定的最大值，则进行缩放
+    if (maxSmoothedValue > MAX_VALUE) {
+        double scaleFactor = MAX_VALUE / maxSmoothedValue;  // 计算缩放比例
+
+        // 缩放所有平滑后的数据
+        for (int i = 0; i < length; i++) {
+            smoothedData[i] *= scaleFactor;
+        }
+    }
+
+    // 将平滑后的数据重新赋值给原数组
+    for (int i = 0; i < length; i++) {
+        spectrumMeta[i] = smoothedData[i];
+    }
+}
+
 
 void MainWindow::UserAddFinger()
 {
@@ -497,25 +532,124 @@ if (labelName == "label_spectrum_1")
 else if (labelName == "label_spectrum_2")
     a_label = ui->label_spectrum_2;
 */
+void MainWindow::updateDisplayTime()
+{
+    // 获取当前系统时间
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+   // qDebug() << "当前系统时间:" << currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
+
+    // 使用 currentDateTime 获取毫秒级时间戳
+    qint64 timestamp = currentDateTime.toMSecsSinceEpoch();
+
+    // 将时间戳转换为 QDateTime 对象
+    QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(timestamp);
+
+    // 获取年月日，存入数组
+    int year = dateTime.date().year();
+    int month = dateTime.date().month();
+    int day = dateTime.date().day();
+    int hour = dateTime.time().hour();
+    int minute = dateTime.time().minute();
+    int second = dateTime.time().second();
+
+    // 输出年月日为数组形式
+    QString dateFormatted = QString("%1-%2-%3").arg(year).arg(month).arg(day);
+    // 输出时分秒为 "hh:mm:ss" 的格式
+    QString timeFormatted = QString("%1:%2:%3").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0')).arg(second, 2, 10, QChar('0'));
+
+    // 打印结果
+    // qDebug() << "Formatted Date:" << dateFormatted;
+    // qDebug() << "Formatted Time:" << timeFormatted;
+
+    // 设置文本到 UI
+    ui->label_date->clear();
+    ui->label_date->setText(timeFormatted + "\n\n" + dateFormatted);
+}
+void MainWindow::displaySpectrumFall()
+{   
+     if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
+    {
+
+       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        return;
+    }
+     for (int i = 1; i <= 60; ++i)
+    {
+
+        if (labels_top[i-1] && labels_bottom[i-1])
+        { // 如果标签存在
+        QPoint currentPos = labels_bottom[i-1]->pos();
+        int distance = labels_top[i-1]->pos().y() - currentPos.y();
+        
+        // 确保distance值在 [2, 92] 范围内
+        if (distance < 2) distance = 2;
+        if (distance > 92) distance = 92;
+        
+        // 根据distance计算fallspeed值，映射到5到1的范围，并强制转换为整数
+         fallspeed[i-1] = static_cast<int>(3 - (float)(distance - 2) / (92 - 2) * (3 - 1) + 0.5f); // 使用+0.5进行四舍五入
+        
+        // 在这里使用fallspeed进行相关操作
+      //  qDebug() <<i<< "=Distance:" << distance << " Fallspeed:" << fallspeed[i-1] <<" FallCount:" << fallCount[i-1];
+                if(currentPos.y() <480-3)
+                {
+
+              //      fallspeed[i-1]  =fallspeed[i-1] *2;
+                    if((fallCount[i-1] ++ )  >= fallspeed[i-1])
+                    {
+                        currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
+                        fallCount[i-1] =0;
+                    }
+                    
+                }
+            labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
+
+        }
+        else
+        {
+               qDebug() << i<< "not found!";
+        }
+    }
+
+
+}
 
 void MainWindow::displaySpectrum()
 {
+   // static int fall = 0;
     if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
     {
 
-       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
+    double original_min = 0;      // 原始数据的最小值
+    double original_max = 99999999; // 原始数据的最大值
 
+
+    smoothData(p_thread->spectrumMeta,60,0.5);
+  /*  for (int i = 0; i <60; ++i)
+    {
+        double currentValue = p_thread->spectrumMeta[i - 1];  // 获取当前值
+
+                // 更新最大值
+                if (currentValue > original_max) {
+                    original_max = currentValue;
+                }
+
+                // 更新最小值
+                if (currentValue < original_min) {
+                    original_min = currentValue;
+                }
+    }
+        original_max = (original_max < 5658100) ? 5658100 : (original_max < 56581000 ? 56581000 : original_max);
+        qDebug() << "original_min" <<original_min <<"original_max" <<original_max;*/
 #if 1
-    for (int i = 1; i <= 61; ++i)
+    for (int i = 1; i <= 60; ++i)
     {
 
         if (labels_top[i-1])
         { // 如果标签存在
             // 只更改高度，保持宽度不变
-            double original_min = 0;      // 原始数据的最小值
-            double original_max = 600000; // 原始数据的最大值
             int newHeight = (int)(1 + ((p_thread->spectrumMeta[i-1] - original_min) / (original_max - original_min)) * (92  - 1));
             if (newHeight < 1)
                 newHeight = 1;
@@ -530,6 +664,37 @@ void MainWindow::displaySpectrum()
             QPoint currentPos = labels_top[i-1]->pos();
 
             labels_top[i-1]->move(currentPos.x(),480-newHeight);
+
+            currentPos =labels_bottom[i-1]->pos();
+            if(labels_top[i-1]->pos().y() <= currentPos.y())
+            {
+                    currentPos.setY(labels_top[i-1]->pos().y() - 3);  // 使用 setY() 来修改 y 坐标
+            }
+           //                 fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
+
+          /*  else
+            {
+                fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
+                qDebug() <<"fallspeed[" << i-1 <<"] = " <<fallspeed[i-1]  ;
+
+                if(currentPos.y() <480-3)
+                {
+
+                    //if(currentPos.y()-labels_top[i-1]->pos().y()  >=3)
+                    if((fallspeed[i-1] --) > =2  )
+                    {
+                    currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
+
+                    }
+                    
+                }
+            }*/
+
+        //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
+            labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
+//            qDebug() << i << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y();
+//            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
+
         }
         else
         {
@@ -558,9 +723,8 @@ void MainWindow::displaySpectrum()
         switchFlag = 0;
     }
     positonoffset += offsetReduce;
-    currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);
-
-    setPlayProgress(currentPosition);*/
+    currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);*/
+   // setPlayProgress(currentPosition);
 
   //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
 
@@ -586,7 +750,7 @@ void MainWindow::ElcLockOption()
 void MainWindow::setPlayProgress(int current)
 {
     // ui->label_progressbar_point->setGeometry(current,453,20,20);
-    label_progressbar_top->setGeometry(0, 460, current, 5);
+    //label_progressbar_top->setGeometry(0, 460, current, 5);
 }
 
 void MainWindow::GetAlbumPicture(QString Artist, QString page, QString limit)
@@ -703,6 +867,48 @@ QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
     // 格式化为 "mm:ss" 格式
     return QString::asprintf("%02d:%02d", minutes, seconds);
 }
+/*
+void MainWindow::wifiLaunch()
+{
+    // 检查 wifi_daemon 是否已经运行
+    QProcess process;
+    process.start("pgrep", QStringList() << "wifi_daemon");
+    process.waitForFinished();
+
+    QString output = process.readAllStandardOutput().trimmed();
+    if (output.isEmpty()) {
+        // 如果没有找到运行中的 wifi_daemon，则启动它
+        qDebug() << "Starting wifi_daemon...";
+        process.start("wifi_daemon");
+        if (!process.waitForStarted()) {
+            qDebug() << "Failed to start wifi_daemon.";
+            return;
+        }
+        process.waitForFinished();
+        qDebug() << "wifi_daemon started.";
+    } else {
+        qDebug() << "wifi_daemon is already running.";
+    }
+
+    // 配置 wifi 为 STA 模式
+    process.start("wifi", QStringList() << "-o" << "sta");
+    if (!process.waitForStarted()) {
+        qDebug() << "Failed to start wifi in STA mode.";
+        return;
+    }
+    process.waitForFinished();
+    qDebug() << "wifi set to STA mode.";
+
+    // 连接到指定的 Wi-Fi 网络
+    process.start("wifi", QStringList() << "-c" << "ThanksGivingDay_111" << "Zz123456");
+    if (!process.waitForStarted()) {
+        qDebug() << "Failed to connect to wifi network.";
+        return;
+    }
+    process.waitForFinished();
+    qDebug() << "Connected to wifi network 'ThanksGivingDay_111'.";
+}*/
+
 
 void MainWindow::wifiLaunch()
 {
@@ -760,28 +966,58 @@ void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
 
         qint64 timestamp = msg.toLongLong();
 
-            // 将时间戳转换为 QDateTime 对象
-            dateTime = QDateTime::fromTime_t(timestamp);
+        // 将时间戳转换为 QDateTime 对象
+        dateTime = QDateTime::fromTime_t(timestamp);
 
-            // 获取年月日，存入数组
-            int year = dateTime.date().year();
-            int month = dateTime.date().month();
-            int day = dateTime.date().day();
-            int hour = dateTime.time().hour();
-            int minute = dateTime.time().minute();
-            int second = dateTime.time().second();
+        // 获取年月日，存入数组
+        int year = dateTime.date().year();
+        int month = dateTime.date().month();
+        int day = dateTime.date().day();
+        int hour = dateTime.time().hour();
+        int minute = dateTime.time().minute();
+        int second = dateTime.time().second();
 
-            // 输出年月日为数组形式
-            QString dateFormatted = QString("%1/%2/%3").arg(year).arg(month).arg(day);
-            // 输出时分秒为 "hh:mm:ss" 的格式
-            QString timeFormatted = QString("%1:%2:%3").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0')).arg(second, 2, 10, QChar('0'));
+        // 输出年月日为数组形式
+        QString dateFormatted = QString("%1-%2-%3").arg(year).arg(month).arg(day);
+        // 输出时分秒为 "hh:mm:ss" 的格式
+        QString timeFormatted = QString("%1:%2:%3").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0')).arg(second, 2, 10, QChar('0'));
 
-            // 打印结果
-            qDebug() << "Formatted Date:" << dateFormatted;
-            qDebug() << "Formatted Time:" << timeFormatted;
+        // 打印结果
+        qDebug() << "Formatted Date:" << dateFormatted;
+        qDebug() << "Formatted Time:" << timeFormatted;
 
+        // 设置文本到 UI
         ui->label_date->clear();
-        ui->label_date->setText(timeFormatted+"\n\n"+dateFormatted);
+        ui->label_date->setText(timeFormatted + "\n\n" + dateFormatted);
+
+        // 组合成 "YYYY-MM-DD HH:MM:SS" 格式
+        QString dateTimeStr = QString("%1 %2").arg(dateFormatted).arg(timeFormatted);
+
+        // 使用 QProcess 调用系统的 `date` 命令设置时间
+        QProcess *process = new QProcess(this);
+        QString command = QString("date -s \"%1\"").arg(dateTimeStr);
+
+        // 执行命令
+        process->start(command);
+        if (!process->waitForStarted()) {
+            qDebug() << "Failed to start process.";
+        } else {
+            process->waitForFinished();
+            qDebug() << "Date set successfully.";
+        }
+
+        // 通过硬件时钟同步系统时间
+        process->start("sudo hwclock --systohc");
+        process->waitForFinished();
+        qDebug() << "Hardware clock synced with system time.";
+
+        QTimer *timer = new QTimer();
+        /* connect(timer, &QTimer::timeout, this, [](){
+             qDebug() << "Timeout aaatriggered!";
+           //  PULLDOWN_ELCLOCK;
+         });*/
+        connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplayTime);
+        timer->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
     }
     else
     {

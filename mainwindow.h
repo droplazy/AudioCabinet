@@ -48,10 +48,12 @@ public:
     void GetWeatherToday();
     void initSepctrum();
     void CreatSpectrum();
+    void smoothData(double spectrumMeta[], int length, double smoothingFactor);
 public slots:
     void displayAudioMeta();
     void UserAddFinger();
     void displaySpectrum();
+    void displaySpectrumFall();
     //void DisposeHttpResult(S_HTTP_RESPONE);
     void DisposeHttpResult(S_HTTP_RESPONE s_back);
     void AlbumPicRotato();
@@ -59,6 +61,7 @@ public slots:
     void flushNetUI();
     void ElcLockOption();
     void setPlayProgress(int current );
+    void updateDisplayTime();
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
@@ -78,11 +81,12 @@ private:
     int offsetReduce =5;//平滑进度条
     QStringList getUrl;
     QDateTime dateTime;
-    QLabel *labels_top[62];
-    QLabel *labels_bottom[62];
+    QLabel *labels_top[60];
+    QLabel *labels_bottom[60];
     QLabel *label_progressbar_bottom;
     QLabel *label_progressbar_top;
-
+    int  fallspeed[60]={0};
+    int fallCount[60]={0};
 };
 
 
