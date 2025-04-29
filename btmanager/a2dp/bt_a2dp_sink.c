@@ -34,8 +34,8 @@
 #include "defs.h"
 #include "ffb.h"
 
-#define CACHE_TIMEOUT 500
-#define A2DP_SINK_COMSUMER_DATA_LEN 1920
+#define CACHE_TIMEOUT 500*2
+#define A2DP_SINK_COMSUMER_DATA_LEN 1920*2
 static bool a2dp_stream_enable = false;
 static pthread_mutex_t a2dp_sink_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -48,8 +48,8 @@ static struct pcm_config a2dp_sink_pcm = {
     .stream = SND_PCM_STREAM_PLAYBACK,
     .channels = 2,
     .sampling = 44100,
-    .buffer_time = 400000,
-    .period_time = 100000,
+    .buffer_time = 700000,
+    .period_time = 500000,
     .format = SND_PCM_FORMAT_S16_LE,
 };
 

@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     QApplication::setOverrideCursor(Qt::BlankCursor);
-          QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+    system("ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime");
 #if 1
     //set system Font
           system("echo 0 > /proc/rp_gpio/output_sd");

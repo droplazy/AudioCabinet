@@ -122,17 +122,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 #if RotationLabel
 
-    label = new RotatingRoundLabel(80, this); // 创建一个半径为100的圆形标签
+    label_around = new RotatingRoundLabel(108, this); // 创建一个半径为100的圆形标签
+    QImage *img_1 = new QImage;  // 新建一个image对象
+    img_1->load(":/ui/around.png");  // 将图像资源载入对象img，注意路径
+     QPixmap pixmap = QPixmap::fromImage(*img_1);
+        label_around->move(530, 90); // 设置标签位置
+
+        label_around->loadImage(pixmap); // 设置标签的图片
+        label_around->show();
+        label_around->startRotation();
+
+        label_aumblePic = new QLabel(this);
+        label_aumblePic->setObjectName(QString("label_aumblePic"));  // 显式设置 objectName
+        label_aumblePic->move(458, 121);  // 设置 QLabel 的位置
+        label_aumblePic->resize(214, 214);
+        label_aumblePic->setStyleSheet("background-color: green;");
 
 #endif
     //setPlayProgress(0);
-    QTimer *timer = new QTimer();
+   QTimer *timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
-    timer->start(100); // 每20ms更新一次（可根据需要调整旋转速度）
+    timer->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
 
-    QTimer *timer_2 = new QTimer();
+   /* QTimer *timer_2 = new QTimer();
     connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
-    timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）
+    timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）*/
     CreatSpectrum();
 }
 
@@ -231,10 +245,11 @@ void MainWindow::CreatSpectrum()
     int center_index = total_labels / 2;  // 计算中间标签的索引
 
     QImage *img_1 = new QImage;  // 新建一个image对象
-    img_1->load(":/Spectrum_single.png");  // 将图像资源载入对象img，注意路径
-    QImage *img_2 = new QImage;  // 新建一个image对象
+    img_1->load(":/ui/spectrum.png");  // 将图像资源载入对象img，注意路径
+    QPixmap pixmap = QPixmap::fromImage(*img_1).scaled(11, 91, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+ /*   QImage *img_2 = new QImage;  // 新建一个image对象
     img_2->load(":/Spectrum_single2.png");  // 将图像资源载入对象img，注意路径
-
+*/
     // 计算标签的位置：从中间开始依次向两边散开
     for (int i = 0; i < total_labels; i++) {
         int offset = i / 2;  // 偏移量，用于计算标签的位置
@@ -248,17 +263,18 @@ void MainWindow::CreatSpectrum()
         }
 
         // 创建并设置 labels_bottom
-        labels_bottom[i] = new QLabel(this);
+       /* labels_bottom[i] = new QLabel(this);
         labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
         labels_bottom[i]->move(x + label_position * (11 + spacing), 480 - 3);  // 设置 QLabel 的位置
         labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
-        labels_bottom[i]->resize(11, 111);
+        labels_bottom[i]->resize(11, 111);*/
 
         // 创建并设置 labels_top
         labels_top[i] = new QLabel(this);
         labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1));  // 显式设置 objectName
         labels_top[i]->move(x + label_position * (11 + spacing), 480);  // 设置 QLabel 的位置
-        labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));
+       // labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));pixmap
+        labels_top[i]->setPixmap(pixmap);
         labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;");  // 可选样式
         labels_top[i]->raise();  // 将 labels_top 放在最上层
         labels_top[i]->resize(11, 92);
@@ -385,7 +401,7 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     }
 
     // 输出结果
-    qDebug() << "Today: Max Temp: " << todayMaxTemp << ", Min Temp: " << todayMinTemp;
+    /*qDebug() << "Today: Max Temp: " << todayMaxTemp << ", Min Temp: " << todayMinTemp;
     qDebug() << "Tomorrow: Max Temp: " << tomorrowMaxTemp << ", Min Temp: " << tomorrowMinTemp;
     qDebug() << "Day After Tomorrow: Max Temp: " << dayAfterTomorrowMaxTemp << ", Min Temp: " << dayAfterTomorrowMinTemp;
     QString weatherInfo = QString("Today: Max Temp: %1, Min Temp: %2\n"
@@ -399,7 +415,15 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
                                  .arg(dayAfterTomorrowMinTemp);
 
     // 输出结果到qDebug()
-    qDebug() << weatherInfo;
+    qDebug() << weatherInfo;*/
+    QString weatherInfo = QString("%1° / %2°")
+                             .arg(todayMinTemp)  // 今日最高温度
+                             .arg( todayMaxTemp );  // 今日最低温度
+
+    // 输出结果到qDebug()（可以根据需要保留或删除）
+    // qDebug() << weatherInfo;
+
+    // 设置标签显示
     ui->label_Weather_future->setText(weatherInfo);
 }
 
@@ -410,11 +434,6 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
     // 如果解析成功，提取 msg 字段
     if (doc.isObject())
     {
-       /* QJsonObject obj = doc.object();
-        QString msg = obj.value("msg").toString(); // 提取 msg 字段
-        qDebug() << "msg字段的值:" << msg;
-
-        QJsonDocument doc = QJsonDocument::fromJson(msg.toUtf8());*/
         QJsonObject rootObj = doc.object();
 
         // 提取所需字段
@@ -423,17 +442,58 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
         QString weather1 = rootObj["weather1"].toString();
 
         // 输出结果
-        qDebug() << "Temperature:" << temperature;
-        qDebug() << "Place:" << place;
-        qDebug() << "Weather1:" << weather1;
+        qDebug() << "Temperature:" << temperature;  // 调试信息
+        qDebug() << "Place:" << place;              // 调试信息
+        qDebug() << "Weather1:" << weather1;        // 调试信息
 
-        ui->label_Weather_today->setText("Temperature:" +  QString::number(temperature)+"\n"+"Place:"+ place+"\n"+"Weather:"+ weather1);
+        QImage *img = new QImage; // 新建一个image对象
+
+        // 根据weather1的内容选择合适的图像资源
+        if (weather1.contains("晴") || weather1.contains("多云"))
+        {
+            img->load(":/ui/sunny.png"); // 晴
+        }
+        else if (weather1.contains("阴"))
+        {
+            img->load(":/ui/cloudy.png"); // 阴
+        }
+        else if (weather1.contains("小雨"))
+        {
+            img->load(":/ui/rain_small.png"); // 小雨
+        }
+        else if (weather1.contains("中雨") || weather1.contains("阵雨"))
+        {
+            img->load(":/ui/rain_middle.png"); // 中雨
+        }
+        else if (weather1.contains("大雨"))
+        {
+            img->load(":/ui/rain_heavy.png"); // 大雨
+        }
+        else if (weather1.contains("雪"))
+        {
+            img->load(":/ui/snow_middle.png"); // 雪
+        }
+        else
+        {
+            img->load(":/picture/faild.png"); // 默认图像
+        }
+
+        // 将选定的图片调整为 31x31 像素，并放入label
+        QPixmap pixmap = QPixmap::fromImage(*img).scaled(31, 31, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        ui->label_Weather_today->setPixmap(pixmap); // 使用调整大小后的pixmap
+
+        // 更新天气信息的显示方式
+        /*ui->label_Weather_future->clear();
+        ui->label_Weather_future->setText(QString(" %1°")
+                                             .arg(temperature));*/
     }
     else
     {
         qDebug() << "无效的 JSON 格式";
     }
 }
+
+
 
 #include "btmanager/bt_test.h"
 
@@ -536,7 +596,6 @@ void MainWindow::updateDisplayTime()
 {
     // 获取当前系统时间
     QDateTime currentDateTime = QDateTime::currentDateTime();
-   // qDebug() << "当前系统时间:" << currentDateTime.toString("yyyy-MM-dd HH:mm:ss");
 
     // 使用 currentDateTime 获取毫秒级时间戳
     qint64 timestamp = currentDateTime.toMSecsSinceEpoch();
@@ -544,35 +603,40 @@ void MainWindow::updateDisplayTime()
     // 将时间戳转换为 QDateTime 对象
     QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(timestamp);
 
-    // 获取年月日，存入数组
+    // 获取年月日
     int year = dateTime.date().year();
     int month = dateTime.date().month();
     int day = dateTime.date().day();
     int hour = dateTime.time().hour();
     int minute = dateTime.time().minute();
-    int second = dateTime.time().second();
 
-    // 输出年月日为数组形式
-    QString dateFormatted = QString("%1-%2-%3").arg(year).arg(month).arg(day);
-    // 输出时分秒为 "hh:mm:ss" 的格式
-    QString timeFormatted = QString("%1:%2:%3").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0')).arg(second, 2, 10, QChar('0'));
+    // 生成格式化时间为 "XX:XX"
+    QString timeFormatted = QString("%1:%2").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0'));
 
-    // 打印结果
-    // qDebug() << "Formatted Date:" << dateFormatted;
-    // qDebug() << "Formatted Time:" << timeFormatted;
+    // 获取星期几
+    QStringList weekDays = {"日", "一", "二", "三", "四", "五", "六"};
+    QString weekDay = weekDays[dateTime.date().dayOfWeek() - 1]; // dayOfWeek 返回值从 1 到 7
+
+    // 生成格式化日期为 "X月X日 周X"
+    QString dateFormatted = QString("%1月%2日  周%3").arg(month).arg(day).arg(weekDay);
 
     // 设置文本到 UI
     ui->label_date->clear();
-    ui->label_date->setText(timeFormatted + "\n\n" + dateFormatted);
+    ui->label_date_2->clear();
+
+    ui->label_date->setText(timeFormatted);
+    ui->label_date_2->setText(dateFormatted);
 }
+
 void MainWindow::displaySpectrumFall()
 {   
      if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
     {
-
+       // label_around->stopRotation();
        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
+    // label_around->startRotation();
      for (int i = 1; i <= 60; ++i)
     {
 
@@ -665,7 +729,7 @@ void MainWindow::displaySpectrum()
 
             labels_top[i-1]->move(currentPos.x(),480-newHeight);
 
-            currentPos =labels_bottom[i-1]->pos();
+           // currentPos =labels_bottom[i-1]->pos();
             if(labels_top[i-1]->pos().y() <= currentPos.y())
             {
                     currentPos.setY(labels_top[i-1]->pos().y() - 3);  // 使用 setY() 来修改 y 坐标
@@ -691,7 +755,7 @@ void MainWindow::displaySpectrum()
             }*/
 
         //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
-            labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
+        //    labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
 //            qDebug() << i << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y();
 //            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
 
@@ -1194,21 +1258,12 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
 
         // 将 QImage 转换为 QPixmap
 
-        
-
-#ifdef RotationLabel
-        QPixmap pixmap = QPixmap::fromImage(image);
-        label->move(530, 40); // 设置标签位置
-
-        label->loadImage(pixmap); // 设置标签的图片
-        label->show();
-        
-#endif
   //  QImage *img = new QImage;                       //新建一个image对象
    // img->load(":/picture/faild.png");               //将图像资源载入对象img，注意路径，可点进图片右键复制路径
-    ui->label_aumblePic->setPixmap(QPixmap::fromImage(image)); //将图片放入label，使用setPixmap,注意指针*img
-    ui->label_aumblePic->setAlignment(Qt::AlignCenter);
-    ui->label_aumblePic->setScaledContents(true);
+    label_aumblePic->setPixmap(QPixmap::fromImage(image)); //将图片放入label，使用setPixmap,注意指针*img
+    label_aumblePic->setAlignment(Qt::AlignCenter);
+    label_aumblePic->setScaledContents(true);
+    label_aumblePic->show();
         getUrl.clear();
         picSearchCnt = 0;
         picGetcnt = 0;

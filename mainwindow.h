@@ -8,6 +8,8 @@
 #include <QDateTime>
 #define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
 #define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
+#define RotationLabel 1
+
 
 
 class qDbus;
@@ -73,7 +75,7 @@ private:
     QString localPlace;
     QString DeviceIP;
     bool badKeywords=false;
-    RotatingRoundLabel *label;
+    RotatingRoundLabel *label_around;
     int picSearchCnt=0;
     int picGetcnt=0;
     int currentPosition =0;
@@ -85,6 +87,7 @@ private:
     QLabel *labels_bottom[60];
     QLabel *label_progressbar_bottom;
     QLabel *label_progressbar_top;
+    QLabel *label_aumblePic;
     int  fallspeed[60]={0};
     int fallCount[60]={0};
 };

@@ -17,6 +17,8 @@ public:
     // 设置图片
     void loadImage(const QPixmap &newPixmap);
 
+    void startRotation();
+    void stopRotation();
 protected:
     // 重写paintEvent进行绘制
     void paintEvent(QPaintEvent *event) override;

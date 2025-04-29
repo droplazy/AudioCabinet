@@ -1,8 +1,11 @@
+// rotatingroundedlabel.cpp
+
 #include "rotatingroundedlabel.h"
 #include <QPainter>
 #include <QPainterPath>
 #include <QTimerEvent>
 #include <QDebug>
+
 RotatingRoundLabel::RotatingRoundLabel(int radius, QWidget *parent)
     : QLabel(parent), radius(radius), angle(0), timer(nullptr)
 {
@@ -10,7 +13,7 @@ RotatingRoundLabel::RotatingRoundLabel(int radius, QWidget *parent)
     setFixedSize(radius * 2, radius * 2);
 
     // 默认背景为蓝色
-    setStyleSheet("background-color: black;");
+    setStyleSheet("background-color: black;border-radius: 107px;");
 
     // 启动定时器控制旋转
     runimage();
@@ -26,9 +29,6 @@ RotatingRoundLabel::~RotatingRoundLabel()
 void RotatingRoundLabel::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-
-    // 启用抗锯齿  //运行内存消耗过大
-   // painter.setRenderHint(QPainter::Antialiasing);
 
     // 创建圆形路径
     QPainterPath path;
@@ -56,6 +56,7 @@ void RotatingRoundLabel::paintEvent(QPaintEvent *event)
     // 调用父类的paintEvent
     QLabel::paintEvent(event);
 }
+
 void RotatingRoundLabel::onTimeout()
 {
     // 更新旋转角度
@@ -78,4 +79,18 @@ void RotatingRoundLabel::runimage()
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &RotatingRoundLabel::onTimeout);
     timer->start(20);  // 每20ms更新一次（可根据需要调整旋转速度）
+}
+
+void RotatingRoundLabel::startRotation()
+{
+    if (timer && !timer->isActive()) {
+        timer->start(20);  // 重新启动定时器
+    }
+}
+
+void RotatingRoundLabel::stopRotation()
+{
+    if (timer && timer->isActive()) {
+        timer->stop();  // 停止定时器
+    }
 }

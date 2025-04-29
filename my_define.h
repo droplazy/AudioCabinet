@@ -17,7 +17,7 @@
 #define URL_WEATHER_IP          "http://vip.apihz.cn/api/tianqi/tqybmoji15ip.php"
 #define URL_HOTSEARCH           "http://vip.apihz.cn/api/xinwen/baidu.php"
 #define URL_DATETODAY           "http://vip.apihz.cn/api/time/getapi.php"
-#define URL_WEATHERTODAY           "http://vip.apihz.cn/api/tianqi/tqybip.php"
+#define URL_WEATHERTODAY        "http://vip.apihz.cn/api/tianqi/tqybip.php"
 
 
 enum HTTP_TYPE {
