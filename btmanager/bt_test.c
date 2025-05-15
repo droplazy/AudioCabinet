@@ -56,7 +56,7 @@ int playing_pos = 0;
 btmg_avrcp_play_state_t get_state   = BTMG_AVRCP_PLAYSTATE_STOPPED;
 int switchFlag =0;
 int trackUpdate =0;
-
+char blue_addr[72]={0};
 static void bt_test_adapter_status_cb(btmg_adapter_state_t status)
 {
     char bt_addr[18] = { 0 };
@@ -213,9 +213,11 @@ static void bt_test_a2dp_sink_connection_state_cb(const char *bd_addr,
         BTMG_INFO("A2DP sink connecting with device: %s", bd_addr);
     } else if (state == BTMG_A2DP_SINK_CONNECTED) {
         BTMG_INFO("A2DP sink connected with device: %s", bd_addr);
+        strcpy(blue_addr,bd_addr);
         // bt_manager_set_scan_mode(BTMG_SCAN_MODE_NONE);
     } else if (state == BTMG_A2DP_SINK_DISCONNECTING) {
         BTMG_INFO("A2DP sink disconnecting with device: %s", bd_addr);
+         bzero(blue_addr,sizeof(bd_addr));
     }
 }
 

@@ -96,7 +96,8 @@ SOURCES += main.cpp\
     main_thread.cpp \
     SetupSerialPort.c \
     fingerthread.cpp \
-    fingerpackage.cpp
+    fingerpackage.cpp \
+    key_event.cpp
 
 HEADERS  += mainwindow.h \
     my_define.h \
@@ -147,7 +148,8 @@ HEADERS  += mainwindow.h \
     main_thread.h \
     SetupSerialPort.h \
     fingerthread.h \
-    fingerpackage.h
+    fingerpackage.h \
+    key_event.h
 
 FORMS    += mainwindow.ui
 

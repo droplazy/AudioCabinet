@@ -108,6 +108,7 @@ extern int playing_pos ;
 extern btmg_avrcp_play_state_t get_state;
 extern int trackUpdate;
 extern int switchFlag;
+extern char blue_addr[];
 /*gatt client*/
 void bt_gatt_client_register_callback(btmg_callback_t *cb);
 int bt_gatt_client_init();

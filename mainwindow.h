@@ -17,6 +17,7 @@ class HttpClient;
 class Btmanager_thread;
 class main_thread;
 class FingerThread;
+class Key_event;
 namespace Ui {
 class MainWindow;
 }
@@ -68,6 +69,7 @@ private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
     FingerThread *p_finger;
+    Key_event *p_keyevent;
     HttpClient *p_http;
   //  btmg_avrcp_play_state_t a_sta= BTMG_AVRCP_STOP;
     QString Playing_Artist;

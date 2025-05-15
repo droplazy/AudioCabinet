@@ -40,6 +40,7 @@ static bool a2dp_stream_enable = false;
 static pthread_mutex_t a2dp_sink_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *pcm_data[2048] ={0};
+int volume_scale =50;
 int pcm_lenth =0;
 
 static struct pcm_config a2dp_sink_pcm = {
@@ -243,6 +244,107 @@ fail:
     pthread_cleanup_pop(1);
     return NULL;
 }
+
+static int a2dp_sink_pcm_write(void *handle, char *buff, uint32_t *len)
+{
+    struct pcm_config *pf = (struct pcm_config *)handle;
+    snd_pcm_uframes_t residue;
+    snd_pcm_uframes_t total;
+    int ret = BT_OK;
+    int ex_frames = -1;
+    int ac_frames = -1;
+    static int fd = -1;
+    static bool pcm_dump_hw = false;
+
+    if (pf == NULL || buff == NULL || len == NULL) {
+        BTMG_ERROR("a2dp sink send data error.");
+        return BT_ERROR_NULL_VARIABLE;
+    }
+    if (pf->pcm == NULL) {
+        snd_pcm_uframes_t buffer_size;
+        snd_pcm_uframes_t period_size;
+
+        /* After PCM open failure wait one second before retry. This can not be
+        * done with a single sleep() call, because we have to drain PCM FIFO. */
+        if (pcm_open_retries++ % 20 != 0) {
+            usleep(50000);
+            return BT_ERROR_A2DP_PCM_OPEN_FAIL;
+        }
+
+        ret = aw_pcm_open(pf);
+        if (ret < 0) {
+            BTMG_ERROR("a2dp sink open pcm error:%s", snd_strerror(ret));
+            usleep(50000);
+            return BT_ERROR_A2DP_PCM_OPEN_FAIL;
+        }
+        pcm_open_retries = 0;
+        snd_pcm_get_params(pf->pcm, &buffer_size, &period_size);
+        pcm_max_read_len = period_size * pf->channels * pf->format;
+    }
+    ex_frames = *len / (pf->format_size * pf->channels);
+    residue = ex_frames;
+    total = ex_frames;
+
+    // 使用全局 volume_scale 进行音量调整
+    float scale_factor = volume_scale / 100.0f;  // 计算音量调整因子
+
+    while (residue > 0) {
+        void *buf = buff + snd_pcm_frames_to_bytes(pf->pcm, total - residue);
+
+        // 调整音量: 假设 PCM 数据格式为 16-bit (short)
+        if (scale_factor != 1.0f) {
+            short *pcm_data = (short *)buf;
+            int sample_count = residue * pf->channels;
+            for (int i = 0; i < sample_count; i++) {
+                pcm_data[i] = (short)(pcm_data[i] * scale_factor);  // 调整音量
+            }
+        }
+
+        ac_frames = aw_pcm_write(pf->pcm, buf, residue);
+        if (ac_frames >= 0) {
+            residue -= ac_frames;
+            continue;
+        }
+    }
+
+    if (btmg_ex_debug_mask & EX_DBG_A2DP_SINK_RATE) {
+        static int data_count = 0;
+        int speed = 0;
+        int time_ms;
+
+        data_count += *len;
+        time_ms = btmg_interval_time((void *)a2dp_sink_pcm_write, 2000);
+        if (time_ms) {
+            speed = data_count * 1000 / time_ms;
+            BTMG_INFO("time_ms[%d] tot[%d] len[%d] ex_frames[%d] ac_frames[%d] speed[%d]", time_ms,
+                      data_count, *len, ex_frames, ac_frames, speed);
+            data_count = 0;
+        }
+    }
+
+    if (btmg_ex_debug_mask & EX_DBG_A2DP_SINK_DUMP_HW) {
+        pcm_dump_hw = true;
+        btmg_ex_debug_mask &= ~EX_DBG_A2DP_SINK_DUMP_HW;
+    }
+    if (pcm_dump_hw == true) {
+        if (bt_alsa_dump_pcm(&fd, "/tmp/a2dp_sink_hw.raw", buff, *len, (1024 * 1024 * 8)) == -1) {
+            pcm_dump_hw = false;
+        }
+    }
+    memcpy(pcm_data,buff,(size_t )*len);
+    pcm_lenth = *len;
+   /* for(int i =0;i<pcm_lenth;i++)
+    {
+        printf(" %02x", pcm_data[i]);
+    }
+    printf("\n"); */
+
+    return (ac_frames * pf->format_size * pf->channels);
+}
+
+
+
+#if 0
 static int a2dp_sink_pcm_write(void *handle, char *buff, uint32_t *len)
 {
     struct pcm_config *pf = (struct pcm_config *)handle;
@@ -325,7 +427,7 @@ static int a2dp_sink_pcm_write(void *handle, char *buff, uint32_t *len)
     printf("\n");*/
     return (ac_frames * pf->format_size * pf->channels);
 }
-
+#endif
 static int a2dp_sink_pcm_deinit(void *usr_data)
 {
     BTMG_DEBUG("enter.");

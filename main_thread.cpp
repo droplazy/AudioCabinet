@@ -117,7 +117,7 @@ void main_thread::SpectrumMetaData()
 */
     // 调用计算功率谱函数
    // qDebug() << "pcm_lenth "<<pcm_lenth;
-    if(pcm_lenth >0)
+    if(pcm_lenth >0 && volume_scale >0)
     {
       /*  for(int i =0;i<pcm_lenth;i++)
         {

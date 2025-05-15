@@ -20,9 +20,33 @@
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusReply>
 #include "fingerthread.h"
+#include "key_event.h"
 #include "bt_manager.h"
 #include <QJsonObject>
 #include <QJsonArray>
+
+int readOutputSD() 
+{
+        QFile file("/proc/rp_gpio/output_sd");
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug() << "Unable to open the file";
+            return -1; // 返回一个错误值
+        }
+
+        QTextStream in(&file);
+        QString line = in.readLine();
+        file.close();
+
+        bool ok;
+        int value = line.toInt(&ok);
+        
+        if (ok) {
+            return value; // 返回读取到的值（1或0）
+        } else {
+            qDebug() << "Failed to convert line to integer";
+            return -1; // 返回一个错误值
+        }
+    }
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -114,8 +138,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     p_thread->start();
     p_finger = new FingerThread();
     p_finger->start();
+    p_keyevent =new Key_event();
+    p_keyevent->start();
+
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
-    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // updateAudioTrack
+    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection); //HTTP抓取数据借口                              // updateAudioTrack
     connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);                      //
     connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
     connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);                            //
@@ -148,6 +175,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
     timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）*/
     CreatSpectrum();
+    updateDisplayTime();
 }
 
 MainWindow::~MainWindow()
@@ -416,7 +444,7 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 
     // 输出结果到qDebug()
     qDebug() << weatherInfo;*/
-    QString weatherInfo = QString("%1° / %2°")
+    QString weatherInfo = QString("%1 / %2")
                              .arg(todayMinTemp)  // 今日最高温度
                              .arg( todayMaxTemp );  // 今日最低温度
 
@@ -449,9 +477,13 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
         QImage *img = new QImage; // 新建一个image对象
 
         // 根据weather1的内容选择合适的图像资源
-        if (weather1.contains("晴") || weather1.contains("多云"))
+        if (weather1.contains("晴") )
         {
             img->load(":/ui/sunny.png"); // 晴
+        }
+        else if (weather1.contains("多云"))
+        {
+            img->load(":/ui/cloudy_sun.png"); // 晴
         }
         else if (weather1.contains("阴"))
         {
@@ -630,13 +662,23 @@ void MainWindow::updateDisplayTime()
 
 void MainWindow::displaySpectrumFall()
 {   
-     if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
+   /* if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
     {
-       // label_around->stopRotation();
+        label_around->stopRotation();
+       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        return;
+    }*/
+
+    if (readOutputSD() != 1)
+    {
+        label_around->stopRotation();
        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
-    // label_around->startRotation();
+    
+
+
+     label_around->startRotation();
      for (int i = 1; i <= 60; ++i)
     {
 
@@ -680,12 +722,29 @@ void MainWindow::displaySpectrumFall()
 void MainWindow::displaySpectrum()
 {
    // static int fall = 0;
-    if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING)
+   /*  if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
     {
+        label_around->stopRotation();
+      //  qDebug() <<get_state <<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        return;
+    }*/
+    if(strlen( blue_addr) > 0)
+    {
+       p_keyevent->blue_addr= blue_addr;
 
+    }
+    else if (strlen( blue_addr) == 0)
+    {
+        p_keyevent->blue_addr.clear();
+    }
+
+        if (readOutputSD() != 1)
+    {
+        label_around->stopRotation();
        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
+     label_around->startRotation();
     double original_min = 0;      // 原始数据的最小值
     double original_max = 99999999; // 原始数据的最大值
 
@@ -1017,6 +1076,10 @@ void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
         qDebug() << "无效的 JSON 格式";
     }
 }
+
+
+
+
 void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
 {
     QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());
@@ -1071,9 +1134,10 @@ void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
         }
 
         // 通过硬件时钟同步系统时间
-        process->start("sudo hwclock --systohc");
+       /* process->start("sudo hwclock --systohc");
         process->waitForFinished();
-        qDebug() << "Hardware clock synced with system time.";
+        qDebug() << "Hardware clock synced with system time.";*/
+        system("hwclock --systohc");
 
         QTimer *timer = new QTimer();
         /* connect(timer, &QTimer::timeout, this, [](){
@@ -1227,9 +1291,15 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
            // GetAlbumPicture(result, "1", "10");
             GetAlbumPicture(result, "1", "1");
         }
+         else if (doc.object().value("msg").toString().contains("words参数不能为空"))
+        {
+
+            QString result = Playing_Album;
+            GetAlbumPicture(result, "1", "1");
+        }
         else /*if(doc.object().value("msg").toString().contains("请求失败，请重试！"))*/
         {
-            GetAlbumPicture(Playing_Album, "1", "10");
+            GetAlbumPicture(total_info_audio.album, "1", "10");
         }
         sleep(1);
         return -1;
@@ -1247,8 +1317,8 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
     {
         if (isImageWhite(image, 200))
         {
-            qDebug() << "this picture is not good ,try to refind one  ";
-            qDebug() << "current count :" << picSearchCnt << "total source: " << picGetcnt;
+            qDebug() << "这张图片不合适，尝试重新获取一张";
+            qDebug() << "当前计数 :" << picSearchCnt << "总来源: " << picGetcnt;
             if (picSearchCnt < picGetcnt)
             {
                 DownloadAudioPctrue(getUrl.at(picSearchCnt++));
@@ -1256,14 +1326,29 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
             }
         }
 
-        // 将 QImage 转换为 QPixmap
+        // 计算缩放后的尺寸
+        QSize originalSize = image.size();
+        QSize scaledSize;
 
-  //  QImage *img = new QImage;                       //新建一个image对象
-   // img->load(":/picture/faild.png");               //将图像资源载入对象img，注意路径，可点进图片右键复制路径
-    label_aumblePic->setPixmap(QPixmap::fromImage(image)); //将图片放入label，使用setPixmap,注意指针*img
-    label_aumblePic->setAlignment(Qt::AlignCenter);
-    label_aumblePic->setScaledContents(true);
-    label_aumblePic->show();
+        // 保持172x172的接近比例，计算缩放比
+        const int targetSize = 214;
+        float scale = std::min(static_cast<float>(targetSize) / originalSize.width(),
+                                static_cast<float>(targetSize) / originalSize.height());
+
+        // 计算缩放后的尺寸
+        scaledSize = QSize(static_cast<int>(originalSize.width() * scale),
+                           static_cast<int>(originalSize.height() * scale));
+
+        // 等比缩放图像
+        QImage scaledImage = image.scaled(scaledSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+        // 将 QImage 转换为 QPixmap
+        label_aumblePic->setPixmap(QPixmap::fromImage(scaledImage));
+        label_aumblePic->setAlignment(Qt::AlignCenter);
+        label_aumblePic->setScaledContents(true);
+        label_aumblePic->show();
+
+        // 清理缓存
         getUrl.clear();
         picSearchCnt = 0;
         picGetcnt = 0;
@@ -1273,6 +1358,7 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
         qWarning() << "图片加载失败";
     }
 }
+
 
 QVector<WeatherData> MainWindow::getWeatherData(const QString &jsonString, QString &place)
 {
