@@ -539,7 +539,7 @@ void MainWindow::displayAudioMeta()
     ui->label_title->setStyleSheet("color:white;");
     // qDebug() << "USER PLAY CHANGED !" <<Playing_Album << ": " << p_meta->Album   << "boolean:" <<p_meta->Album.contains(Playing_Album);
 
-    if (Playing_Album != total_info_audio.album)
+    if (Playing_Album != total_info_audio.album )
     {
         // qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << total_info_audio.album << "boolean:" << total_info_audio.album.contains(Playing_Album);
 
@@ -577,7 +577,7 @@ void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingF
     // 使用加权移动平均来平滑数据
     // smoothingFactor 表示平滑程度，取值范围 0 到 1，越接近 1 越平滑
 
-    const double MAX_VALUE = 99999999.0; // 设置最大值
+    const double MAX_VALUE = 92.0; // 设置最大值
 
     std::vector<double> smoothedData(length);
 
@@ -748,8 +748,44 @@ void MainWindow::displaySpectrum()
     double original_min = 0;      // 原始数据的最小值
     double original_max = 99999999; // 原始数据的最大值
 
+    // 使用一个for循环遍历数组，找到最大值和最小值
+    for (int i = 0; i < 60; ++i) {
+        if (p_thread->spectrumMeta[i] > original_max) {
+            original_max = p_thread->spectrumMeta[i]; // 更新最大值
+        }
+        if (p_thread->spectrumMeta[i] < original_min) {
+            original_min = p_thread->spectrumMeta[i]; // 更新最小值
+        }
+    }
 
-    smoothData(p_thread->spectrumMeta,60,0.5);
+    // 输出最大值和最小值
+    // qDebug() << "Max Value:" << original_max;
+    // qDebug() << "Min Value:" << original_min;
+
+
+
+     double newHeight[60]={0};
+    for (size_t i = 0; i < 60; i++)
+    {
+         newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92  - 1));
+            if (newHeight[i] < 1)
+                newHeight[i] = 1;
+            if (newHeight[i] > 92)
+                newHeight[i] = 92;
+             // qDebug()  << "height: "<< newHeight[i];
+    }
+    
+    smoothData(newHeight,60,0.95);
+
+
+
+  /*  for (int i = 0; i < 60; ++i) {
+            sum += p_thread->spectrumMeta[i];
+        }
+    qDebug() << "Average:" << sum / 600000;*/
+
+
+
   /*  for (int i = 0; i <60; ++i)
     {
         double currentValue = p_thread->spectrumMeta[i - 1];  // 获取当前值
@@ -773,11 +809,7 @@ void MainWindow::displaySpectrum()
         if (labels_top[i-1])
         { // 如果标签存在
             // 只更改高度，保持宽度不变
-            int newHeight = (int)(1 + ((p_thread->spectrumMeta[i-1] - original_min) / (original_max - original_min)) * (92  - 1));
-            if (newHeight < 1)
-                newHeight = 1;
-            if (newHeight > 92)
-                newHeight = 92;
+
 
             // qDebug() << i << labels_top[i-1]->objectName();
             //  int newHeight = scaled_value;
@@ -786,7 +818,7 @@ void MainWindow::displaySpectrum()
            // a_label->resize(a_label->width(), newHeight); 370 ~430 60
             QPoint currentPos = labels_top[i-1]->pos();
 
-            labels_top[i-1]->move(currentPos.x(),480-newHeight);
+            labels_top[i-1]->move(currentPos.x(),480-(int)newHeight[i-1]);
 
            // currentPos =labels_bottom[i-1]->pos();
             if(labels_top[i-1]->pos().y() <= currentPos.y())
@@ -815,7 +847,7 @@ void MainWindow::displaySpectrum()
 
         //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
         //    labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
-//            qDebug() << i << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y();
+        //    qDebug() << i-1 << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y() << "height: "<< newHeight[i-1] <<"meta:"<<p_thread->spectrumMeta[i-1];
 //            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
 
         }
@@ -853,6 +885,8 @@ void MainWindow::displaySpectrum()
 
 #endif
 }
+
+
 void MainWindow::ElcLockOption()
 {
     PULLUP_ELCLOCK;
@@ -907,6 +941,28 @@ WEATHER_IP*/
 void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
 {
     qDebug() << "HTTP OPERATION:" << s_back.Title;
+    static int errorcnt = 0;
+
+    if (s_back.Error.contains("not found") && s_back.success == false)
+    {
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+
+        if (errorcnt++ >=3)
+        {
+        p_thread->isNetOk = false;
+        }
+        
+        return ;
+    }
+    
+errorcnt=0;
+
+
     if (s_back.Title == ONE_WORD)
     {
         DisposeOneWord(s_back);
@@ -1180,6 +1236,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
     else
     {
         qDebug() << "无效的 JSON 格式";
+        qDebug() <<s_back.Message;
     }
 }
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)

@@ -28,6 +28,9 @@ public:
     void calculatePowerSpectrum(const char* pcmData, int sampleRate, int N);
 
     double spectrumMeta[60]={0};
+    void recheckNetwork();
+        bool isNetOk = false;
+
 public slots:
     void checkNetworkStatus();
 
@@ -37,7 +40,6 @@ signals:
     void DebugSignal();
 
 private:
-    bool isNetOk = false;
      QNetworkConfigurationManager *manager;
 };
 

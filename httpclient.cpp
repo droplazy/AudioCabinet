@@ -114,7 +114,11 @@ void HttpClient::onFinished(QNetworkReply *reply)
     else {
         // 请求失败，输出错误信息
         qDebug() << "Error:" << reply->errorString();
+        GetRespone.Error = reply->errorString();
         GetRespone.success = false;
+    //    emit HttpError(GetRespone);
+
+    //    return ;
     }
 
     // 确保 GetRespone 是通过信号传递

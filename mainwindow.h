@@ -52,6 +52,7 @@ public:
     void initSepctrum();
     void CreatSpectrum();
     void smoothData(double spectrumMeta[], int length, double smoothingFactor);
+  //  double calculateAverage(const QVector<double>& arr);
 public slots:
     void displayAudioMeta();
     void UserAddFinger();
@@ -72,8 +73,8 @@ private:
     Key_event *p_keyevent;
     HttpClient *p_http;
   //  btmg_avrcp_play_state_t a_sta= BTMG_AVRCP_STOP;
-    QString Playing_Artist;
-    QString Playing_Album;
+    QString Playing_Artist="ZWDZ_NONE";
+    QString Playing_Album="ZWDZ_NONE";
     QString localPlace;
     QString DeviceIP;
     bool badKeywords=false;
