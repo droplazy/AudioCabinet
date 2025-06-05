@@ -11,36 +11,24 @@ void Key_event::run()
     while(1)
     {
 
-        // 增加音量
-        if(GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
-        {//realse
 
-        }
-        else if (!GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
+        if (!GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
         {
             usleep(300 *1000);
             if (!GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
-                    {
-            volume_scale += 10;
-            // 限制 volume_scale 在 0 到 100 之间
-            if (volume_scale > 100) {
-                volume_scale = 100;
-            }
+            {
+                volume_scale = 0;
+
             qDebug() << blue_addr << "volume : " << volume_scale;
             }
         }
 
-        // 降低音量
-        if(GetGpioStatus("/proc/rp_gpio/input_volume_reduce"))
-        {//realse
-
-        }
-        else if (!GetGpioStatus("/proc/rp_gpio/input_volume_reduce"))
+        if (!GetGpioStatus("/proc/rp_gpio/input_volume_reduce"))
         {
             usleep(300 *1000);
             if (!GetGpioStatus("/proc/rp_gpio/input_volume_reduce"))
                     {
-            volume_scale -= 10;
+            volume_scale -= 1;
             // 限制 volume_scale 在 0 到 100 之间
             if (volume_scale < 0) {
                 volume_scale = 0;
@@ -50,13 +38,18 @@ void Key_event::run()
         }
 
 
-        if(GetGpioStatus("/proc/rp_gpio/input_volume_add"))
-        {//realse
-
-        }
-        else if (!GetGpioStatus("/proc/rp_gpio/input_volume_add"))
+        if (!GetGpioStatus("/proc/rp_gpio/input_volume_add"))
         {
-
+            usleep(300 *1000);
+            if (!GetGpioStatus("/proc/rp_gpio/input_volume_add"))
+                    {
+            volume_scale += 10;
+            // 限制 volume_scale 在 0 到 100 之间
+            if (volume_scale > 10) {
+                volume_scale = 10;
+            }
+            qDebug() << blue_addr << "volume : " << volume_scale;
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 #include "btmanager/bt_test.h"
 #include "bt_a2dp_sink.h"
 
+
 void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, int N) {
     fftw_complex* in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
       fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
@@ -26,8 +27,12 @@ void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, in
 
           double frequency = i * sampleRate / N;
          // qDebug() << "Frequency:" << frequency << "Hz, Power (dB):" << power;
-         if (static_cast<int>(frequency) % 50 < 10 && frequency!=0)
+         if (static_cast<int>(frequency) % 15  && frequency!=0)
           {
+             if(power == 0)
+             {
+                   continue;
+             }
             spectrumMeta[aa] =power*7;
            // qDebug() <<aa <<"frequency"<<frequency <<"spectrumMeta" <<spectrumMeta[aa];
             aa++;
@@ -48,21 +53,21 @@ void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, in
 
 main_thread::main_thread()
 {
-    manager = new QNetworkConfigurationManager(this);
+    // manager = new QNetworkConfigurationManager(this);
 
-    // 当网络配置改变时进行响应
-    connect(manager, &QNetworkConfigurationManager::configurationChanged, this, &main_thread::checkNetworkStatus);
-    connect(manager, &QNetworkConfigurationManager::onlineStateChanged, this, &main_thread::checkNetworkStatus);
+    // // 当网络配置改变时进行响应
+    // connect(manager, &QNetworkConfigurationManager::configurationChanged, this, &main_thread::checkNetworkStatus);
+    // connect(manager, &QNetworkConfigurationManager::onlineStateChanged, this, &main_thread::checkNetworkStatus);
 
-    // 初始检查网络状态
-    checkNetworkStatus();
 }
 
 void main_thread::run()
 {
+
     while(1)
     {
-        //qDebug() << trackUpdate;
+
+
         if(trackUpdate>0)
         {
             trackUpdate= 0;
@@ -78,7 +83,7 @@ void main_thread::run()
 
 bool main_thread::isConnected()
 {
-    return manager->isOnline();
+  //  return manager->isOnline();
 }
 
 int main_thread::GetGpioStatus(QString GPIO_fILE)
@@ -128,18 +133,26 @@ void main_thread::SpectrumMetaData()
     }
 }
 
-void main_thread::checkNetworkStatus()
+#include <QElapsedTimer>  // 引入 QElapsedTimer
+
+void main_thread::checkNetworkStatus()//drop
 {
-           if (isConnected() && isNetOk== false  )
-           {
-               qDebug() << "Device is connected to the network.";
-               emit wlanConnected();
-               isNetOk = true;
-               qDebug() << "12312313123123123";
-           }
-           else
-           {
-               qDebug() << "Device is not connected to the network.";
-               isNetOk = false;
-           }
+    QElapsedTimer timer;  // 创建计时器
+    timer.start();  // 启动计时器
+
+    if (isConnected() && isNetOk == false)
+    {
+        qDebug() << "Device is connected to the network.";
+        emit wlanConnected();
+        isNetOk = true;
+        qDebug() << "12312313123123123";
+    }
+    else
+    {
+        qDebug() << "Device is not connected to the network.";
+        isNetOk = false;
+    }
+
+    qint64 elapsed = timer.elapsed();  // 获取从启动到现在的时间（毫秒）
+    qDebug() << "Network check finished, cost" << elapsed * 1000 << "us";  // 打印花费的时间，转换为微秒
 }

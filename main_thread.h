@@ -40,7 +40,7 @@ signals:
     void DebugSignal();
 
 private:
-     QNetworkConfigurationManager *manager;
+   //  QNetworkConfigurationManager *manager;
 };
 
 #endif // MAIN_THREAD_H

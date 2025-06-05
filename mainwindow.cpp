@@ -24,29 +24,39 @@
 #include "bt_manager.h"
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QElapsedTimer> // 引入 QElapsedTimer
 
-int readOutputSD() 
+
+
+
+#define NETCHECK_COUNT 15000
+
+int readOutputSD()
 {
-        QFile file("/proc/rp_gpio/output_sd");
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug() << "Unable to open the file";
-            return -1; // 返回一个错误值
-        }
-
-        QTextStream in(&file);
-        QString line = in.readLine();
-        file.close();
-
-        bool ok;
-        int value = line.toInt(&ok);
-        
-        if (ok) {
-            return value; // 返回读取到的值（1或0）
-        } else {
-            qDebug() << "Failed to convert line to integer";
-            return -1; // 返回一个错误值
-        }
+    QFile file("/proc/rp_gpio/output_sd");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "Unable to open the file";
+        return -1; // 返回一个错误值
     }
+
+    QTextStream in(&file);
+    QString line = in.readLine();
+    file.close();
+
+    bool ok;
+    int value = line.toInt(&ok);
+
+    if (ok)
+    {
+        return value; // 返回读取到的值（1或0）
+    }
+    else
+    {
+        qDebug() << "Failed to convert line to integer";
+        return -1; // 返回一个错误值
+    }
+}
 
 bool isImageWhite(QImage image, int threshold = 200)
 {
@@ -133,49 +143,56 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     // sleep(3);
     wifiLaunch();
 
+
     p_http = new HttpClient();
     p_thread = new main_thread();
-    p_thread->start();
     p_finger = new FingerThread();
-    p_finger->start();
-    p_keyevent =new Key_event();
-    p_keyevent->start();
+    p_keyevent = new Key_event();
 
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
-    connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection); //HTTP抓取数据借口                              // updateAudioTrack
-    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);                      //
-    connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
+    //connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
+    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);                      //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
     connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);                            //
+    p_keyevent->start();
+    p_finger->start();
+    p_thread->start();
 
 #if RotationLabel
 
     label_around = new RotatingRoundLabel(108, this); // 创建一个半径为100的圆形标签
-    QImage *img_1 = new QImage;  // 新建一个image对象
-    img_1->load(":/ui/around.png");  // 将图像资源载入对象img，注意路径
-     QPixmap pixmap = QPixmap::fromImage(*img_1);
-        label_around->move(530, 90); // 设置标签位置
+    QImage *img_1 = new QImage;                       // 新建一个image对象
+    img_1->load(":/ui/around.png");                   // 将图像资源载入对象img，注意路径
+    QPixmap pixmap = QPixmap::fromImage(*img_1);
+    label_around->move(530, 90); // 设置标签位置
 
-        label_around->loadImage(pixmap); // 设置标签的图片
-        label_around->show();
-        label_around->startRotation();
+    label_around->loadImage(pixmap); // 设置标签的图片
+    label_around->show();
+    label_around->startRotation();
 
-        label_aumblePic = new QLabel(this);
-        label_aumblePic->setObjectName(QString("label_aumblePic"));  // 显式设置 objectName
-        label_aumblePic->move(458, 121);  // 设置 QLabel 的位置
-        label_aumblePic->resize(214, 214);
-        label_aumblePic->setStyleSheet("background-color: green;");
+    label_aumblePic = new QLabel(this);
+    label_aumblePic->setObjectName(QString("label_aumblePic")); // 显式设置 objectName
+    label_aumblePic->move(458, 121);                            // 设置 QLabel 的位置
+    label_aumblePic->resize(214, 214);
+    label_aumblePic->setStyleSheet("background-color: green;");
 
 #endif
-    //setPlayProgress(0);
-   QTimer *timer = new QTimer();
-    connect(timer, &QTimer::timeout, this, &MainWindow::displaySpectrum);
-    timer->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
+#if 1
 
-   /* QTimer *timer_2 = new QTimer();
-    connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
-    timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）*/
+    // setPlayProgress(0);
+    QTimer *timer_1 = new QTimer();
+    connect(timer_1, &QTimer::timeout, this, &MainWindow::displaySpectrum);
+    timer_1->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
+
+    /* QTimer *timer_2 = new QTimer();
+     connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
+     timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）*/
     CreatSpectrum();
     updateDisplayTime();
+#endif
+    QTimer *timer_2 = new QTimer();
+    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
+    timer_2->start(NETCHECK_COUNT); // 每20ms更新一次（可根据需要调整旋转速度）
+
 }
 
 MainWindow::~MainWindow()
@@ -205,7 +222,7 @@ void MainWindow::GetHotSearch()
     QUrlQuery query;
     query.addQueryItem("id", API_ID);
     query.addQueryItem("key", API_KEY);
-  //  query.addQueryItem("words", "心灵鸡汤");
+    //  query.addQueryItem("words", "心灵鸡汤");
 
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
@@ -255,11 +272,11 @@ void MainWindow::initSepctrum()
 
             QPoint currentPos = a_label->pos();
 
-            a_label->setGeometry(currentPos.x(),430,14,120);
+            a_label->setGeometry(currentPos.x(), 430, 14, 120);
         }
         else
         {
-               qDebug() << labelName << "not found!";
+            qDebug() << labelName << "not found!";
         }
     }
 }
@@ -269,45 +286,49 @@ void MainWindow::CreatSpectrum()
 {
     int spacing = 2;
     int x = 3;
-    int total_labels = 60;  // 假设有61个标签
-    int center_index = total_labels / 2;  // 计算中间标签的索引
+    int total_labels = 60;               // 假设有61个标签
+    int center_index = total_labels / 2; // 计算中间标签的索引
 
-    QImage *img_1 = new QImage;  // 新建一个image对象
-    img_1->load(":/ui/spectrum.png");  // 将图像资源载入对象img，注意路径
+    QImage *img_1 = new QImage;       // 新建一个image对象
+    img_1->load(":/ui/spectrum.png"); // 将图像资源载入对象img，注意路径
     QPixmap pixmap = QPixmap::fromImage(*img_1).scaled(11, 91, Qt::KeepAspectRatio, Qt::SmoothTransformation);
- /*   QImage *img_2 = new QImage;  // 新建一个image对象
-    img_2->load(":/Spectrum_single2.png");  // 将图像资源载入对象img，注意路径
-*/
+    /*   QImage *img_2 = new QImage;  // 新建一个image对象
+       img_2->load(":/Spectrum_single2.png");  // 将图像资源载入对象img，注意路径
+   */
     // 计算标签的位置：从中间开始依次向两边散开
-    for (int i = 0; i < total_labels; i++) {
-        int offset = i / 2;  // 偏移量，用于计算标签的位置
+    for (int i = 0; i < total_labels; i++)
+    {
+        int offset = i / 2; // 偏移量，用于计算标签的位置
         int label_position;
 
         // 如果是偶数索引，表示从中间往左放
-        if (i % 2 == 0) {
+        if (i % 2 == 0)
+        {
             label_position = center_index - offset;
-        } else {  // 如果是奇数索引，表示从中间往右放
-            label_position = center_index + offset + 1;  // 在奇数位置加一个额外的偏移量，防止重叠
+        }
+        else
+        {                                               // 如果是奇数索引，表示从中间往右放
+            label_position = center_index + offset + 1; // 在奇数位置加一个额外的偏移量，防止重叠
         }
 
         // 创建并设置 labels_bottom
-       /* labels_bottom[i] = new QLabel(this);
-        labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
-        labels_bottom[i]->move(x + label_position * (11 + spacing), 480 - 3);  // 设置 QLabel 的位置
-        labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
-        labels_bottom[i]->resize(11, 111);*/
+        /* labels_bottom[i] = new QLabel(this);
+         labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
+         labels_bottom[i]->move(x + label_position * (11 + spacing), 480 - 3);  // 设置 QLabel 的位置
+         labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
+         labels_bottom[i]->resize(11, 111);*/
 
         // 创建并设置 labels_top
         labels_top[i] = new QLabel(this);
-        labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1));  // 显式设置 objectName
-        labels_top[i]->move(x + label_position * (11 + spacing), 480);  // 设置 QLabel 的位置
-       // labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));pixmap
+        labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1)); // 显式设置 objectName
+        labels_top[i]->move(x + label_position * (11 + spacing), 480);       // 设置 QLabel 的位置
+                                                                             // labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));pixmap
         labels_top[i]->setPixmap(pixmap);
-        labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;");  // 可选样式
-        labels_top[i]->raise();  // 将 labels_top 放在最上层
+        labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;"); // 可选样式
+        labels_top[i]->raise();                                                          // 将 labels_top 放在最上层
         labels_top[i]->resize(11, 92);
 
-        //qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
+        // qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
 
     // 创建进度条标签
@@ -371,7 +392,7 @@ void MainWindow::disposeIP(S_HTTP_RESPONE s_back)
         // 输出提取到的 IP 地址
         qDebug() << "IP Address:" << ip;
         DeviceIP = ip;
-        //ui->label_IP->setText(DeviceIP);
+        // ui->label_IP->setText(DeviceIP);
         GetWeatherOnIp();
         GetWeatherToday();
     }
@@ -387,7 +408,8 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     qDebug() << jsonString;
     // 解析 JSON 数据
     QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
-    if (!doc.isObject()) {
+    if (!doc.isObject())
+    {
         qDebug() << "Invalid JSON data.";
         return;
     }
@@ -396,7 +418,7 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     QJsonArray dataArray = jsonObj["data"].toArray();
 
     // 获取当前日期、明天和后天的日期
-    QDateTime currentDate =dateTime;
+    QDateTime currentDate = dateTime;
     QDateTime tomorrow = currentDate.addDays(1);
     QDateTime dayAfterTomorrow = currentDate.addDays(2);
 
@@ -410,19 +432,23 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     QString tomorrowMaxTemp, tomorrowMinTemp;
     QString dayAfterTomorrowMaxTemp, dayAfterTomorrowMinTemp;
 
-    for (const QJsonValue& value : dataArray) {
+    for (const QJsonValue &value : dataArray)
+    {
         QJsonObject dayObj = value.toObject();
         QString date = dayObj["week2"].toString();
 
-        if (date == currentDateString) {
+        if (date == currentDateString)
+        {
             todayMaxTemp = dayObj["wendu1"].toString();
             todayMinTemp = dayObj["wendu2"].toString();
         }
-        if (date == tomorrowDateString) {
+        if (date == tomorrowDateString)
+        {
             tomorrowMaxTemp = dayObj["wendu1"].toString();
             tomorrowMinTemp = dayObj["wendu2"].toString();
         }
-        if (date == dayAfterTomorrowDateString) {
+        if (date == dayAfterTomorrowDateString)
+        {
             dayAfterTomorrowMaxTemp = dayObj["wendu1"].toString();
             dayAfterTomorrowMinTemp = dayObj["wendu2"].toString();
         }
@@ -445,8 +471,8 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
     // 输出结果到qDebug()
     qDebug() << weatherInfo;*/
     QString weatherInfo = QString("%1 / %2")
-                             .arg(todayMinTemp)  // 今日最高温度
-                             .arg( todayMaxTemp );  // 今日最低温度
+                              .arg(todayMinTemp)  // 今日最高温度
+                              .arg(todayMaxTemp); // 今日最低温度
 
     // 输出结果到qDebug()（可以根据需要保留或删除）
     // qDebug() << weatherInfo;
@@ -470,14 +496,14 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
         QString weather1 = rootObj["weather1"].toString();
 
         // 输出结果
-        qDebug() << "Temperature:" << temperature;  // 调试信息
-        qDebug() << "Place:" << place;              // 调试信息
-        qDebug() << "Weather1:" << weather1;        // 调试信息
+        qDebug() << "Temperature:" << temperature; // 调试信息
+        qDebug() << "Place:" << place;             // 调试信息
+        qDebug() << "Weather1:" << weather1;       // 调试信息
 
         QImage *img = new QImage; // 新建一个image对象
 
         // 根据weather1的内容选择合适的图像资源
-        if (weather1.contains("晴") )
+        if (weather1.contains("晴"))
         {
             img->load(":/ui/sunny.png"); // 晴
         }
@@ -525,21 +551,19 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
     }
 }
 
-
-
 #include "btmanager/bt_test.h"
 
 void MainWindow::displayAudioMeta()
 {
     ui->label_aumble->setText(total_info_audio.album);
     ui->label_aumble->setStyleSheet("color:white;");
-    //ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
-    // ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
+    // ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
+    //  ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
     ui->label_title->setText(total_info_audio.title);
     ui->label_title->setStyleSheet("color:white;");
     // qDebug() << "USER PLAY CHANGED !" <<Playing_Album << ": " << p_meta->Album   << "boolean:" <<p_meta->Album.contains(Playing_Album);
 
-    if (Playing_Album != total_info_audio.album )
+    if (Playing_Album != total_info_audio.album)
     {
         // qDebug() << "USER PLAY CHANGED !" << Playing_Album << ": " << total_info_audio.album << "boolean:" << total_info_audio.album.contains(Playing_Album);
 
@@ -573,7 +597,8 @@ void MainWindow::displayAudioMeta()
     qDebug("BT playing music genre: %s", total_info_audio.genre);
     qDebug("BT playing music duration: %s", total_info_audio.duration);
 }
-void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingFactor) {
+void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingFactor)
+{
     // 使用加权移动平均来平滑数据
     // smoothingFactor 表示平滑程度，取值范围 0 到 1，越接近 1 越平滑
 
@@ -585,7 +610,8 @@ void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingF
     smoothedData[0] = spectrumMeta[0];
 
     // 对剩余元素进行平滑处理
-    for (int i = 1; i < length; i++) {
+    for (int i = 1; i < length; i++)
+    {
         smoothedData[i] = smoothingFactor * spectrumMeta[i] + (1 - smoothingFactor) * smoothedData[i - 1];
     }
 
@@ -593,25 +619,28 @@ void MainWindow::smoothData(double spectrumMeta[], int length, double smoothingF
     double maxSmoothedValue = *std::max_element(smoothedData.begin(), smoothedData.end());
 
     // 如果最大值超过了设定的最大值，则进行缩放
-    if (maxSmoothedValue > MAX_VALUE) {
-        double scaleFactor = MAX_VALUE / maxSmoothedValue;  // 计算缩放比例
+    if (maxSmoothedValue > MAX_VALUE)
+    {
+        double scaleFactor = MAX_VALUE / maxSmoothedValue; // 计算缩放比例
 
         // 缩放所有平滑后的数据
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
+        {
             smoothedData[i] *= scaleFactor;
         }
     }
 
     // 将平滑后的数据重新赋值给原数组
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++)
+    {
         spectrumMeta[i] = smoothedData[i];
     }
 }
 
-
 void MainWindow::UserAddFinger()
 {
-    p_finger->AutoEnroll();
+    //  p_finger->AutoEnroll();
+    qDebug() << "!@##@!!@#!@#!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
 }
 /*
 // 使用 findChild 动态查找每个 QLabel 对象
@@ -647,7 +676,7 @@ void MainWindow::updateDisplayTime()
 
     // 获取星期几
     QStringList weekDays = {"日", "一", "二", "三", "四", "五", "六"};
-    QString weekDay = weekDays[dateTime.date().dayOfWeek() - 1]; // dayOfWeek 返回值从 1 到 7
+    QString weekDay = weekDays[dateTime.date().dayOfWeek()]; // dayOfWeek 返回值从 1 到 7
 
     // 生成格式化日期为 "X月X日 周X"
     QString dateFormatted = QString("%1月%2日  周%3").arg(month).arg(day).arg(weekDay);
@@ -661,99 +690,97 @@ void MainWindow::updateDisplayTime()
 }
 
 void MainWindow::displaySpectrumFall()
-{   
-   /* if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
-    {
-        label_around->stopRotation();
-       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        return;
-    }*/
+{
+    /* if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
+     {
+         label_around->stopRotation();
+        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+         return;
+     }*/
 
     if (readOutputSD() != 1)
     {
         label_around->stopRotation();
-       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
-    
 
-
-     label_around->startRotation();
-     for (int i = 1; i <= 60; ++i)
+    label_around->startRotation();
+    for (int i = 1; i <= 60; ++i)
     {
 
-        if (labels_top[i-1] && labels_bottom[i-1])
+        if (labels_top[i - 1] && labels_bottom[i - 1])
         { // 如果标签存在
-        QPoint currentPos = labels_bottom[i-1]->pos();
-        int distance = labels_top[i-1]->pos().y() - currentPos.y();
-        
-        // 确保distance值在 [2, 92] 范围内
-        if (distance < 2) distance = 2;
-        if (distance > 92) distance = 92;
-        
-        // 根据distance计算fallspeed值，映射到5到1的范围，并强制转换为整数
-         fallspeed[i-1] = static_cast<int>(3 - (float)(distance - 2) / (92 - 2) * (3 - 1) + 0.5f); // 使用+0.5进行四舍五入
-        
-        // 在这里使用fallspeed进行相关操作
-      //  qDebug() <<i<< "=Distance:" << distance << " Fallspeed:" << fallspeed[i-1] <<" FallCount:" << fallCount[i-1];
-                if(currentPos.y() <480-3)
+            QPoint currentPos = labels_bottom[i - 1]->pos();
+            int distance = labels_top[i - 1]->pos().y() - currentPos.y();
+
+            // 确保distance值在 [2, 92] 范围内
+            if (distance < 2)
+                distance = 2;
+            if (distance > 92)
+                distance = 92;
+
+            // 根据distance计算fallspeed值，映射到5到1的范围，并强制转换为整数
+            fallspeed[i - 1] = static_cast<int>(3 - (float)(distance - 2) / (92 - 2) * (3 - 1) + 0.5f); // 使用+0.5进行四舍五入
+
+            // 在这里使用fallspeed进行相关操作
+            //  qDebug() <<i<< "=Distance:" << distance << " Fallspeed:" << fallspeed[i-1] <<" FallCount:" << fallCount[i-1];
+            if (currentPos.y() < 480 - 3)
+            {
+
+                //      fallspeed[i-1]  =fallspeed[i-1] *2;
+                if ((fallCount[i - 1]++) >= fallspeed[i - 1])
                 {
-
-              //      fallspeed[i-1]  =fallspeed[i-1] *2;
-                    if((fallCount[i-1] ++ )  >= fallspeed[i-1])
-                    {
-                        currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
-                        fallCount[i-1] =0;
-                    }
-                    
+                    currentPos.setY(currentPos.y() + 1); // 使用 setY() 来修改 y 坐标
+                    fallCount[i - 1] = 0;
                 }
-            labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
-
+            }
+            labels_bottom[i - 1]->move(currentPos.x(), currentPos.y());
         }
         else
         {
-               qDebug() << i<< "not found!";
+            qDebug() << i << "not found!";
         }
     }
-
-
 }
 
 void MainWindow::displaySpectrum()
 {
-   // static int fall = 0;
-   /*  if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
+    // static int fall = 0;
+    /*  if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
+     {
+         label_around->stopRotation();
+       //  qDebug() <<get_state <<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+         return;
+     }*/
+    if (strlen(blue_addr) > 0)
     {
-        label_around->stopRotation();
-      //  qDebug() <<get_state <<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        return;
-    }*/
-    if(strlen( blue_addr) > 0)
-    {
-       p_keyevent->blue_addr= blue_addr;
-
+        p_keyevent->blue_addr = blue_addr;
     }
-    else if (strlen( blue_addr) == 0)
+    else if (strlen(blue_addr) == 0)
     {
         p_keyevent->blue_addr.clear();
     }
 
-        if (readOutputSD() != 1)
+    if (readOutputSD() != 1)
     {
         label_around->stopRotation();
-       // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         return;
     }
-     label_around->startRotation();
-    double original_min = 0;      // 原始数据的最小值
+    label_around->startRotation();
+    double original_min = 0;        // 原始数据的最小值
     double original_max = 99999999; // 原始数据的最大值
 
     // 使用一个for循环遍历数组，找到最大值和最小值
-    for (int i = 0; i < 60; ++i) {
-        if (p_thread->spectrumMeta[i] > original_max) {
+    for (int i = 0; i < 60; ++i)
+    {
+        if (p_thread->spectrumMeta[i] > original_max)
+        {
             original_max = p_thread->spectrumMeta[i]; // 更新最大值
         }
-        if (p_thread->spectrumMeta[i] < original_min) {
+        if (p_thread->spectrumMeta[i] < original_min)
+        {
             original_min = p_thread->spectrumMeta[i]; // 更新最小值
         }
     }
@@ -762,130 +789,121 @@ void MainWindow::displaySpectrum()
     // qDebug() << "Max Value:" << original_max;
     // qDebug() << "Min Value:" << original_min;
 
-
-
-     double newHeight[60]={0};
+    double newHeight[60] = {0};
     for (size_t i = 0; i < 60; i++)
     {
-         newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92  - 1));
-            if (newHeight[i] < 1)
-                newHeight[i] = 1;
-            if (newHeight[i] > 92)
-                newHeight[i] = 92;
-             // qDebug()  << "height: "<< newHeight[i];
+        newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92 - 1));
+        if (newHeight[i] < 1)
+            newHeight[i] = 1;
+        if (newHeight[i] > 92)
+            newHeight[i] = 92;
+        // qDebug()  << "height: "<< newHeight[i];
     }
-    
-    smoothData(newHeight,60,0.95);
 
+    smoothData(newHeight, 60, 0.95);
 
+    /*  for (int i = 0; i < 60; ++i) {
+              sum += p_thread->spectrumMeta[i];
+          }
+      qDebug() << "Average:" << sum / 600000;*/
 
-  /*  for (int i = 0; i < 60; ++i) {
-            sum += p_thread->spectrumMeta[i];
-        }
-    qDebug() << "Average:" << sum / 600000;*/
+    /*  for (int i = 0; i <60; ++i)
+      {
+          double currentValue = p_thread->spectrumMeta[i - 1];  // 获取当前值
 
+                  // 更新最大值
+                  if (currentValue > original_max) {
+                      original_max = currentValue;
+                  }
 
-
-  /*  for (int i = 0; i <60; ++i)
-    {
-        double currentValue = p_thread->spectrumMeta[i - 1];  // 获取当前值
-
-                // 更新最大值
-                if (currentValue > original_max) {
-                    original_max = currentValue;
-                }
-
-                // 更新最小值
-                if (currentValue < original_min) {
-                    original_min = currentValue;
-                }
-    }
-        original_max = (original_max < 5658100) ? 5658100 : (original_max < 56581000 ? 56581000 : original_max);
-        qDebug() << "original_min" <<original_min <<"original_max" <<original_max;*/
+                  // 更新最小值
+                  if (currentValue < original_min) {
+                      original_min = currentValue;
+                  }
+      }
+          original_max = (original_max < 5658100) ? 5658100 : (original_max < 56581000 ? 56581000 : original_max);
+          qDebug() << "original_min" <<original_min <<"original_max" <<original_max;*/
 #if 1
     for (int i = 1; i <= 60; ++i)
     {
 
-        if (labels_top[i-1])
+        if (labels_top[i - 1])
         { // 如果标签存在
             // 只更改高度，保持宽度不变
-
 
             // qDebug() << i << labels_top[i-1]->objectName();
             //  int newHeight = scaled_value;
             //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
 
-           // a_label->resize(a_label->width(), newHeight); 370 ~430 60
-            QPoint currentPos = labels_top[i-1]->pos();
+            // a_label->resize(a_label->width(), newHeight); 370 ~430 60
+            QPoint currentPos = labels_top[i - 1]->pos();
 
-            labels_top[i-1]->move(currentPos.x(),480-(int)newHeight[i-1]);
+            labels_top[i - 1]->move(currentPos.x(), 480 - (int)newHeight[i - 1]);
 
-           // currentPos =labels_bottom[i-1]->pos();
-            if(labels_top[i-1]->pos().y() <= currentPos.y())
+            // currentPos =labels_bottom[i-1]->pos();
+            if (labels_top[i - 1]->pos().y() <= currentPos.y())
             {
-                    currentPos.setY(labels_top[i-1]->pos().y() - 3);  // 使用 setY() 来修改 y 坐标
+                currentPos.setY(labels_top[i - 1]->pos().y() - 3); // 使用 setY() 来修改 y 坐标
             }
-           //                 fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
+            //                 fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
 
-          /*  else
-            {
-                fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
-                qDebug() <<"fallspeed[" << i-1 <<"] = " <<fallspeed[i-1]  ;
+            /*  else
+              {
+                  fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
+                  qDebug() <<"fallspeed[" << i-1 <<"] = " <<fallspeed[i-1]  ;
 
-                if(currentPos.y() <480-3)
-                {
+                  if(currentPos.y() <480-3)
+                  {
 
-                    //if(currentPos.y()-labels_top[i-1]->pos().y()  >=3)
-                    if((fallspeed[i-1] --) > =2  )
-                    {
-                    currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
+                      //if(currentPos.y()-labels_top[i-1]->pos().y()  >=3)
+                      if((fallspeed[i-1] --) > =2  )
+                      {
+                      currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
 
-                    }
-                    
-                }
-            }*/
+                      }
 
-        //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
-        //    labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
-        //    qDebug() << i-1 << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y() << "height: "<< newHeight[i-1] <<"meta:"<<p_thread->spectrumMeta[i-1];
-//            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
+                  }
+              }*/
 
+            //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
+            //    labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
+            //    qDebug() << i-1 << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y() << "height: "<< newHeight[i-1] <<"meta:"<<p_thread->spectrumMeta[i-1];
+            //            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
         }
         else
         {
-               qDebug() << i<< "not found!";
+            qDebug() << i << "not found!";
         }
     }
-   /* if (switchFlag)
-    {
+    /* if (switchFlag)
+     {
 
-        if (positonoffset == 0 || abs(positonoffset -playing_pos) >5000)
-        {
-            positonoffset = playing_pos;
-        }
-        else 
-        {
-            if (playing_pos-positonoffset>0)
-            {
-                offsetReduce++;
-            }
-            else 
-            {
-                offsetReduce--;
-            }
-            
-        }
-        switchFlag = 0;
-    }
-    positonoffset += offsetReduce;
-    currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);*/
-   // setPlayProgress(currentPosition);
+         if (positonoffset == 0 || abs(positonoffset -playing_pos) >5000)
+         {
+             positonoffset = playing_pos;
+         }
+         else
+         {
+             if (playing_pos-positonoffset>0)
+             {
+                 offsetReduce++;
+             }
+             else
+             {
+                 offsetReduce--;
+             }
 
-  //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
+         }
+         switchFlag = 0;
+     }
+     positonoffset += offsetReduce;
+     currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);*/
+    // setPlayProgress(currentPosition);
+
+    //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
 
 #endif
 }
-
 
 void MainWindow::ElcLockOption()
 {
@@ -907,7 +925,7 @@ void MainWindow::ElcLockOption()
 void MainWindow::setPlayProgress(int current)
 {
     // ui->label_progressbar_point->setGeometry(current,453,20,20);
-    //label_progressbar_top->setGeometry(0, 460, current, 5);
+    // label_progressbar_top->setGeometry(0, 460, current, 5);
 }
 
 void MainWindow::GetAlbumPicture(QString Artist, QString page, QString limit)
@@ -945,23 +963,22 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
 
     if (s_back.Error.contains("not found") && s_back.success == false)
     {
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
-         qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
+        qDebug() << "######################## DEBUG BRAEK POINT ########################";
 
-        if (errorcnt++ >=3)
+        if (errorcnt++ >= 3)
         {
-        p_thread->isNetOk = false;
+            p_thread->isNetOk = false;
         }
-        
-        return ;
-    }
-    
-errorcnt=0;
 
+        return;
+    }
+
+    errorcnt = 0;
 
     if (s_back.Title == ONE_WORD)
     {
@@ -995,7 +1012,7 @@ errorcnt=0;
     }
     else if (s_back.Title == WEATHERTODAY)
     {
-        //DisposeDate(s_back);
+        // DisposeDate(s_back);
         disposeWeathertoday(s_back);
     }
     else
@@ -1022,8 +1039,35 @@ void MainWindow::flushNetUI()
     GetHotSearch();
     GetDateToday();
     GetWeatherToday();
-    //GetOnewords();
+    // GetOnewords();
 }
+
+void MainWindow::checkNetworkStatus()
+{
+    QElapsedTimer timer; // 创建计时器
+    timer.start();       // 启动计时器
+    QProcess process;
+    process.start("ping", QStringList() << "-c" << "1" << "www.baidu.com"); // Linux/macOS 使用 -c 参数，Windows 使用 -n
+    process.waitForFinished();                                              // 等待 ping 命令完成
+
+    QString output = process.readAllStandardOutput(); // 获取 ping 命令的输出
+    qDebug() << "Ping output:" << output;
+
+    qint64 elapsed = timer.elapsed();                                     // 获取从启动到现在的时间（毫秒）
+    qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
+    
+    // 修改后的判断逻辑，确保字符串完全匹配
+    if (output.contains("1 packets transmitted, 1 packets received"))
+    {
+        qDebug() << "Device is connected to the network.";
+        flushNetUI();
+    }
+    else
+    {
+        qDebug() << "Device is not connected to the network.";
+    }
+}
+
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
     // 将输入的 QString 转换为整数（毫秒数）
@@ -1088,8 +1132,7 @@ void MainWindow::wifiLaunch()
     qDebug() << "Connected to wifi network 'ThanksGivingDay_111'.";
 }*/
 
-
-void MainWindow::wifiLaunch()
+void MainWindow::wifiLaunch() // todo
 {
     //    QString res;
     //    QStringList arguments;
@@ -1110,9 +1153,9 @@ void MainWindow::wifiLaunch()
     //    arguments << "ThanksGivingDay_111";
     //    QprocessCommand("wifi", res, arguments);
     //    qDebug() << "wifi -t : " << res;
-    system("wifi_daemon\n");
-    system("wifi -o sta\n");
-    system("wifi -c ThanksGivingDay_111 Zz123456\n"); // todo
+    // system("wifi_daemon\n");
+    // system("wifi -o sta\n");
+    // system("wifi -c ThanksGivingDay_111 Zz123456\n"); // todo
 }
 
 void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
@@ -1125,16 +1168,13 @@ void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
         QJsonObject obj = doc.object();
         QString msg = obj.value("msg").toString(); // 提取 msg 字段
         qDebug() << "msg字段的值:" << msg;
-       // ui->label_soulwords->setText(msg);
+        // ui->label_soulwords->setText(msg);
     }
     else
     {
         qDebug() << "无效的 JSON 格式";
     }
 }
-
-
-
 
 void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
 {
@@ -1182,18 +1222,21 @@ void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
 
         // 执行命令
         process->start(command);
-        if (!process->waitForStarted()) {
+        if (!process->waitForStarted())
+        {
             qDebug() << "Failed to start process.";
-        } else {
+        }
+        else
+        {
             process->waitForFinished();
             qDebug() << "Date set successfully.";
         }
 
         // 通过硬件时钟同步系统时间
-       /* process->start("sudo hwclock --systohc");
-        process->waitForFinished();
-        qDebug() << "Hardware clock synced with system time.";*/
-        system("hwclock --systohc");
+        /* process->start("sudo hwclock --systohc");
+         process->waitForFinished();
+         qDebug() << "Hardware clock synced with system time.";*/
+        system("hwclock --systohc -f /dev/rtc1");
 
         QTimer *timer = new QTimer();
         /* connect(timer, &QTimer::timeout, this, [](){
@@ -1222,7 +1265,8 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
         QJsonArray dataArray = obj["data"].toArray();
 
         // Iterate over the array and extract each title
-        for (const QJsonValue &value : dataArray) {
+        for (const QJsonValue &value : dataArray)
+        {
             QJsonObject item = value.toObject();
             QString title = item["query"].toString();
             titles.append(title);
@@ -1236,7 +1280,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
     else
     {
         qDebug() << "无效的 JSON 格式";
-        qDebug() <<s_back.Message;
+        qDebug() << s_back.Message;
     }
 }
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
@@ -1329,26 +1373,26 @@ int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
         }
         else if (doc.object().value("msg").toString().contains("Control character error"))
         {
-       /*     static bool isAlbum = false;
-            QRegExp regex("[^A-Za-z0-9\\u4e00-\\u9fa5]");
-            QString fixKeyword;
-            if (isAlbum)
-                fixKeyword = Playing_Album.replace(regex, "");
-            else
-            {
-                fixKeyword = Playing_Artist.replace(regex, "");
-            }
-            if (fixKeyword.length() > 24)
-            {
+            /*     static bool isAlbum = false;
+                 QRegExp regex("[^A-Za-z0-9\\u4e00-\\u9fa5]");
+                 QString fixKeyword;
+                 if (isAlbum)
+                     fixKeyword = Playing_Album.replace(regex, "");
+                 else
+                 {
+                     fixKeyword = Playing_Artist.replace(regex, "");
+                 }
+                 if (fixKeyword.length() > 24)
+                 {
 
-                fixKeyword = fixKeyword.left(24);
-            }
-            isAlbum = true;*/
+                     fixKeyword = fixKeyword.left(24);
+                 }
+                 isAlbum = true;*/
             QString result = Playing_Artist + "+" + Playing_Album;
-           // GetAlbumPicture(result, "1", "10");
+            // GetAlbumPicture(result, "1", "10");
             GetAlbumPicture(result, "1", "1");
         }
-         else if (doc.object().value("msg").toString().contains("words参数不能为空"))
+        else if (doc.object().value("msg").toString().contains("words参数不能为空"))
         {
 
             QString result = Playing_Album;
@@ -1390,7 +1434,7 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
         // 保持172x172的接近比例，计算缩放比
         const int targetSize = 214;
         float scale = std::min(static_cast<float>(targetSize) / originalSize.width(),
-                                static_cast<float>(targetSize) / originalSize.height());
+                               static_cast<float>(targetSize) / originalSize.height());
 
         // 计算缩放后的尺寸
         scaledSize = QSize(static_cast<int>(originalSize.width() * scale),
@@ -1415,7 +1459,6 @@ void MainWindow::displayAlbumPicOnlabel(QByteArray bytes)
         qWarning() << "图片加载失败";
     }
 }
-
 
 QVector<WeatherData> MainWindow::getWeatherData(const QString &jsonString, QString &place)
 {

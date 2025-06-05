@@ -53,7 +53,10 @@ public:
     void CreatSpectrum();
     void smoothData(double spectrumMeta[], int length, double smoothingFactor);
   //  double calculateAverage(const QVector<double>& arr);
+      void flushNetUI();
+
 public slots:
+    void checkNetworkStatus();
     void displayAudioMeta();
     void UserAddFinger();
     void displaySpectrum();
@@ -62,7 +65,6 @@ public slots:
     void DisposeHttpResult(S_HTTP_RESPONE s_back);
     void AlbumPicRotato();
     void DebugChache();
-    void flushNetUI();
     void ElcLockOption();
     void setPlayProgress(int current );
     void updateDisplayTime();

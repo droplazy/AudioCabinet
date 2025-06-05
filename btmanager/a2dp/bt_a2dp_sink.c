@@ -40,7 +40,7 @@ static bool a2dp_stream_enable = false;
 static pthread_mutex_t a2dp_sink_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *pcm_data[2048] ={0};
-int volume_scale =50;
+int volume_scale =10;
 int pcm_lenth =0;
 
 static struct pcm_config a2dp_sink_pcm = {

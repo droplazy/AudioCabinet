@@ -82,9 +82,18 @@ void FingerThread::run()
                     emit upanddownlock();
                     usleep(1500*1000);//TODO
                     }
-                    else
+                    else if (result == 0x24)
                     {
+                    
                         qDebug() <<"指纹匹配失败 score = "<<(int)score;
+                        Fig_Opt =FO_NOP;
+                        emit upanddownlock();// TODO 开发模式
+                        usleep(1500*1000);//TODO
+                    }
+                    else if (result == 0x26)
+                    {
+                    
+                        qDebug() <<"空指令 score = "<<(int)score;
                         Fig_Opt =FO_NOP;
                     }
                 }

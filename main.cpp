@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     QApplication::setOverrideCursor(Qt::BlankCursor);
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
     system("ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime");
-    system("hwclock --hctosys");
+    system("hwclock --hctosys -f /dev/rtc1");
 
 #if 1
     //set system Font
