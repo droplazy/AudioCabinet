@@ -26,10 +26,7 @@
 #include <QJsonArray>
 #include <QElapsedTimer> // 引入 QElapsedTimer
 
-
-
-
-#define NETCHECK_COUNT 15000
+#define NETCHECK_COUNT 150000
 
 int readOutputSD()
 {
@@ -143,16 +140,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     // sleep(3);
     wifiLaunch();
 
-
     p_http = new HttpClient();
     p_thread = new main_thread();
     p_finger = new FingerThread();
     p_keyevent = new Key_event();
 
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
-    //connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
-    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);                      //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
-    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);                            //
+    // connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
+    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
+    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);       //
     p_keyevent->start();
     p_finger->start();
     p_thread->start();
@@ -189,10 +185,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     CreatSpectrum();
     updateDisplayTime();
 #endif
+    checkNetworkStatus();
     QTimer *timer_2 = new QTimer();
     connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
     timer_2->start(NETCHECK_COUNT); // 每20ms更新一次（可根据需要调整旋转速度）
-
 }
 
 MainWindow::~MainWindow()
@@ -904,7 +900,25 @@ void MainWindow::displaySpectrum()
 
 #endif
 }
+int MainWindow::GetGpioStatus(QString GPIO_fILE)
+{
+    QString filePath = GPIO_fILE;
 
+    // 创建 QFile 对象并传入路径
+    QFile file(filePath);
+
+    // 尝试打开文件
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        //   qDebug() << "无法打开文件:" << file.errorString();
+        return -1;
+    }
+
+    QString get_data = file.readAll();
+    file.close();
+
+    return get_data.toInt(NULL, 10);
+}
 void MainWindow::ElcLockOption()
 {
     PULLUP_ELCLOCK;
@@ -914,14 +928,23 @@ void MainWindow::ElcLockOption()
     //        PULLDOWN_ELCLOCK;
     //    });
     //    timer->start(1000);  // 每20ms更新一次（可根据需要调整旋转速度）
-    QTimer::singleShot(1000, this, []()
-                       {
-                qDebug() << "Timeout triggered!";
-                PULLDOWN_ELCLOCK; });
+    QTimer::singleShot(1000, this, &MainWindow::SaveRealsedLock);
 
     qDebug() << "TIME START !!!!!!!!!!";
 }
+void MainWindow::SaveRealsedLock()
+{
+    qDebug() << "Timeout triggered!";
 
+    PULLDOWN_ELCLOCK;
+    while (GetGpioStatus("/proc/rp_gpio/output_lock") !=0)
+    {
+        qDebug() << "WARNING: LOCK IS NOT REALSED !!!!!" << GetGpioStatus("/proc/rp_gpio/output_lock");
+        PULLDOWN_ELCLOCK;
+        usleep(1000);
+    }
+    qDebug() << "lOCK REALSED! " << GetGpioStatus("/proc/rp_gpio/output_lock");
+}
 void MainWindow::setPlayProgress(int current)
 {
     // ui->label_progressbar_point->setGeometry(current,453,20,20);
@@ -1055,7 +1078,7 @@ void MainWindow::checkNetworkStatus()
 
     qint64 elapsed = timer.elapsed();                                     // 获取从启动到现在的时间（毫秒）
     qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
-    
+
     // 修改后的判断逻辑，确保字符串完全匹配
     if (output.contains("1 packets transmitted, 1 packets received"))
     {

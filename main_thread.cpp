@@ -75,7 +75,7 @@ void main_thread::run()
         }
        // qDebug() << "231";
         SpectrumMetaData();
-       // qDebug() << "456";
+        //qDebug() << "456" <<GetGpioStatus("/proc/rp_gpio/output_lock");;
 
         usleep(1000*1);
     }

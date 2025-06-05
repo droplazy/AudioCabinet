@@ -66,8 +66,10 @@ public slots:
     void AlbumPicRotato();
     void DebugChache();
     void ElcLockOption();
+    int GetGpioStatus(QString GPIO_fILE);
     void setPlayProgress(int current );
     void updateDisplayTime();
+    void SaveRealsedLock();
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;

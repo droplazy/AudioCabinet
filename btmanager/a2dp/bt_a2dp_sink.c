@@ -286,7 +286,13 @@ static int a2dp_sink_pcm_write(void *handle, char *buff, uint32_t *len)
     total = ex_frames;
 
     // 使用全局 volume_scale 进行音量调整
-    float scale_factor = volume_scale / 100.0f;  // 计算音量调整因子
+    int inputVoume= volume_scale;
+    if (inputVoume<=0 )
+    {
+        inputVoume =0;
+    }
+    
+    float scale_factor = inputVoume / 100.0f;  // 计算音量调整因子
 
     while (residue > 0) {
         void *buf = buff + snd_pcm_frames_to_bytes(pf->pcm, total - residue);
