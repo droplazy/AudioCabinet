@@ -28,27 +28,35 @@ void Key_event::run()
     if (!reducePressTimer.isValid()) {
         reducePressTimer.start();  // 启动计时器
     }
-
+    bool mutePress = false; 
     qDebug() << "START!!!!!";
     while(1)
     {
+       // qDebug() << "wow : " <<mutePressTimer.elapsed();
         // 检查静音键
         if (!GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
         {
        //     qDebug()<<"input_volume_mute.elapsed() " << mutePressTimer.elapsed() << GetGpioStatus("/proc/rp_gpio/input_volume_mute");
 
-            if (mutePressTimer.elapsed() == 300) {  // 每300ms切换静音状态
+            if (mutePressTimer.elapsed() == 300 && mutePress ==false) {  // 每300ms切换静音状态
                 volume_scale = -volume_scale;
                 qDebug() << blue_addr << "mute: " << volume_scale << "mutePressTimer.elapsed() " << mutePressTimer.elapsed() << "/proc/rp_gpio/input_volume_mute";
              //   mutePressTimer.restart();  // 重置时间，继续检测
+                 mutePress = true;
             }
         }
         else {
-            usleep(10000);
+            mutePressTimer.restart(); // 松开时重置时间
+            mutePress = false;
+            /*if (mutePress)
+           {
+           usleep(300 *1000);
             if (GetGpioStatus("/proc/rp_gpio/input_volume_mute"))
             mutePressTimer.restart(); // 松开时重置时间
+           mutePress=false;
+           }*/
         }
-
+#if 1
         // 检查减音量键
         if (!GetGpioStatus("/proc/rp_gpio/input_volume_reduce"))
         {
@@ -88,6 +96,7 @@ void Key_event::run()
         else {
             addPressTimer.restart(); // 松开时重置时间
         }
+        #endif 
     }
 }
 

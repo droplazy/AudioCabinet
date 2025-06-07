@@ -73,9 +73,9 @@ void main_thread::run()
         if (occurredFlag)
         {
 
-          PULLDOWN_SD;
+         // PULLDOWN_SD;
           PULLUP_SD;
-            
+          occurredFlag =  0;
         }
 
 
@@ -89,7 +89,7 @@ void main_thread::run()
         SpectrumMetaData();
         //qDebug() << "456" <<GetGpioStatus("/proc/rp_gpio/output_lock");;
 
-        usleep(1000*1);
+     //   usleep(1000*1);
     }
 }
 
