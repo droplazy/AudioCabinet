@@ -15,6 +15,8 @@ extern "C" {
 #include <stdbool.h>
 #define PCM_DEVICE_LEN 48
 
+extern int  occurredFlag;
+
 struct pcm_config {
     char device[PCM_DEVICE_LEN];
     bool drop;

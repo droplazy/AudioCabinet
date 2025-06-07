@@ -179,12 +179,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(timer_1, &QTimer::timeout, this, &MainWindow::displaySpectrum);
     timer_1->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
 
-    /* QTimer *timer_2 = new QTimer();
-     connect(timer_2, &QTimer::timeout, this, &MainWindow::displaySpectrumFall);
-     timer_2->start(1); // 每20ms更新一次（可根据需要调整旋转速度）*/
     CreatSpectrum();
     updateDisplayTime();
 #endif
+
     checkNetworkStatus();
     QTimer *timer_2 = new QTimer();
     connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
@@ -671,8 +669,8 @@ void MainWindow::updateDisplayTime()
     QString timeFormatted = QString("%1:%2").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0'));
 
     // 获取星期几
-    QStringList weekDays = {"日", "一", "二", "三", "四", "五", "六"};
-    QString weekDay = weekDays[dateTime.date().dayOfWeek()]; // dayOfWeek 返回值从 1 到 7
+    QStringList weekDays = { "一", "二", "三", "四", "五", "六","日"};
+    QString weekDay = weekDays[dateTime.date().dayOfWeek() - 1]; // dayOfWeek 返回值从 1 到 7，减 1 后索引是 0 到 6
 
     // 生成格式化日期为 "X月X日 周X"
     QString dateFormatted = QString("%1月%2日  周%3").arg(month).arg(day).arg(weekDay);
@@ -684,6 +682,7 @@ void MainWindow::updateDisplayTime()
     ui->label_date->setText(timeFormatted);
     ui->label_date_2->setText(dateFormatted);
 }
+
 
 void MainWindow::displaySpectrumFall()
 {

@@ -1,6 +1,8 @@
 #include "main_thread.h"
 #include "btmanager/bt_test.h"
 #include "bt_a2dp_sink.h"
+#include "btmanager/include/bt_alsa.h"
+
 
 
 void main_thread::calculatePowerSpectrum(const char* pcmData, int sampleRate, int N) {
@@ -60,12 +62,22 @@ main_thread::main_thread()
     // connect(manager, &QNetworkConfigurationManager::onlineStateChanged, this, &main_thread::checkNetworkStatus);
 
 }
-
+#define  PULLUP_SD    do{ usleep(200*1000);system("echo 1 > /proc/rp_gpio/output_sd");} while(0)
+#define  PULLDOWN_SD    do{ system("echo 0 > /proc/rp_gpio/output_sd");} while(0)
 void main_thread::run()
 {
+   // int SDoffCnt=100;
 
     while(1)
     {
+        if (occurredFlag)
+        {
+
+          PULLDOWN_SD;
+          PULLUP_SD;
+            
+        }
+
 
 
         if(trackUpdate>0)

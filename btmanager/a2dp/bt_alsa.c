@@ -13,6 +13,9 @@
 #include "bt_log.h"
 #include "bt_alsa.h"
 
+
+int occurredFlag = 0;
+
 #define LG_ALSA_DEBUG(fmt, arg...)                                                                 \
     btmg_print(MSG_DEBUG, "[%s:%u]:  " fmt "\n", __func__, __LINE__, ##arg)
 #define LG_ALSA_INFO(fmt, arg...)                                                                  \
@@ -296,6 +299,7 @@ int aw_pcm_read(snd_pcm_t *pcm, char *buffer, int frames)
 
     if (actual_frams == -EPIPE) {
         LG_ALSA_DEBUG("An overrun has occurred");
+        occurredFlag =1;
         snd_pcm_prepare(pcm);
         usleep(50000);
         actual_frams = 0;
@@ -337,6 +341,8 @@ int aw_pcm_write(snd_pcm_t *pcm, char *buffer, int frames)
         switch (-frames) {
         case EPIPE:
             LG_ALSA_ERROR("An underrun has occurred");
+                    occurredFlag =1;
+
             if (btmg_debug_level >= MSG_MSGDUMP && underrun_fd) {
                 underrun_cnt++;
                 fseek(underrun_fd, 0, SEEK_SET);
