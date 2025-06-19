@@ -11,9 +11,7 @@
 #include <QTextStream>
 
 #define  INPUT_FILE "/proc/rp_gpio/input_finger"
-/*
-#define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
-#define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)*/
+
 
 typedef enum{
     FO_NOP = 0,

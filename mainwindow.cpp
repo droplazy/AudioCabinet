@@ -26,7 +26,10 @@
 #include <QJsonArray>
 #include <QElapsedTimer> // 引入 QElapsedTimer
 
-#define NETCHECK_COUNT 150000
+#define NETCHECK_COUNT 1500000
+
+#define  PULLUP_ELCLOCK    writeToOutputLock(1);//do{ my_system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
+#define  PULLDOWN_ELCLOCK  writeToOutputLock(0);  //do{ my_system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
 
 int readOutputSD()
 {
@@ -221,6 +224,57 @@ void MainWindow::GetHotSearch()
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
 }
+
+
+bool MainWindow::writeToOutputLock(int value) {
+    // 打开文件进行读取
+    QFile file("/proc/rp_gpio/output_lock");
+    if (!file.open(QIODevice::ReadWrite)) {
+        qDebug() << "无法打开文件!";
+        return false;
+    }
+
+    // 将新的值转化为字节并写入文件
+    QByteArray newData = QByteArray::number(value) + '\n';  // 需要添加换行符以匹配文件格式
+    qint64 bytesWritten = -1;
+    QByteArray writtenData;
+    
+    // 尝试最多5次写入
+    for (int attempt = 0; attempt < 3000; ++attempt) {
+        // 先读取文件内容
+        file.seek(0);  // 移动文件指针到文件开头
+        QByteArray currentData = file.readAll();
+        qDebug() << "当前文件内容: " << currentData;
+        
+        // 写入新的值
+        file.seek(0);  // 移动文件指针到文件开头
+        bytesWritten = file.write(newData);
+        if (bytesWritten == -1) {
+            qDebug() << "写入失败，第" << attempt + 1 << "次尝试!";
+        } else {
+            // 清空缓存并验证
+            file.flush();
+            file.seek(0);  // 移动文件指针到文件开头
+            writtenData = file.readAll();
+            qDebug() << "写入后的文件内容: " << writtenData;
+
+            // 校验写入的内容是否正确
+            if (writtenData.trimmed() == newData.trimmed()) {
+                qDebug() << "写入成功!";
+                file.close();
+                return true;
+            } else {
+                qDebug() << "写入失败，验证不一致，第" << attempt + 1 << "次尝试!";
+            }
+        }
+    }
+
+    // 超过最大重试次数，返回失败
+    file.close();
+    qDebug() << "尝试5次写入后失败!";
+    return false;
+}
+
 void MainWindow::GetDeviceIP()
 {
     QUrl url(URL_IP_QUERY);
@@ -669,7 +723,7 @@ void MainWindow::updateDisplayTime()
     QString timeFormatted = QString("%1:%2").arg(hour, 2, 10, QChar('0')).arg(minute, 2, 10, QChar('0'));
 
     // 获取星期几
-    QStringList weekDays = { "一", "二", "三", "四", "五", "六","日"};
+    QStringList weekDays = {"一", "二", "三", "四", "五", "六", "日"};
     QString weekDay = weekDays[dateTime.date().dayOfWeek() - 1]; // dayOfWeek 返回值从 1 到 7，减 1 后索引是 0 到 6
 
     // 生成格式化日期为 "X月X日 周X"
@@ -682,7 +736,6 @@ void MainWindow::updateDisplayTime()
     ui->label_date->setText(timeFormatted);
     ui->label_date_2->setText(dateFormatted);
 }
-
 
 void MainWindow::displaySpectrumFall()
 {
@@ -921,12 +974,8 @@ int MainWindow::GetGpioStatus(QString GPIO_fILE)
 void MainWindow::ElcLockOption()
 {
     PULLUP_ELCLOCK;
-    //    QTimer *timer = new QTimer();
-    //    connect(timer, &QTimer::timeout, this, [](){
-    //        qDebug() << "Timeout triggered!";
-    //        PULLDOWN_ELCLOCK;
-    //    });
-    //    timer->start(1000);  // 每20ms更新一次（可根据需要调整旋转速度）
+
+
     QTimer::singleShot(1000, this, &MainWindow::SaveRealsedLock);
 
     qDebug() << "TIME START !!!!!!!!!!";
@@ -936,12 +985,7 @@ void MainWindow::SaveRealsedLock()
     qDebug() << "Timeout triggered!";
 
     PULLDOWN_ELCLOCK;
-    while (GetGpioStatus("/proc/rp_gpio/output_lock") !=0)
-    {
-        qDebug() << "WARNING: LOCK IS NOT REALSED !!!!!" << GetGpioStatus("/proc/rp_gpio/output_lock");
-        PULLDOWN_ELCLOCK;
-        usleep(1000);
-    }
+
     qDebug() << "lOCK REALSED! " << GetGpioStatus("/proc/rp_gpio/output_lock");
 }
 void MainWindow::setPlayProgress(int current)
@@ -1283,21 +1327,32 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
         QJsonObject obj = doc.object();
         QStringList titles;
 
-        // Extract the "data" array from the JSON object
-        QJsonArray dataArray = obj["data"].toArray();
-
-        // Iterate over the array and extract each title
-        for (const QJsonValue &value : dataArray)
+        // Check if "data" exists and is an array
+        if (obj.contains("data") && obj["data"].isArray())
         {
-            QJsonObject item = value.toObject();
-            QString title = item["query"].toString();
-            titles.append(title);
+            // Extract the "data" array from the JSON object
+            QJsonArray dataArray = obj["data"].toArray();
+
+            // Iterate over the array and extract each title
+            for (const QJsonValue &value : dataArray)
+            {
+                QJsonObject item = value.toObject();
+                QString title = item["query"].toString();
+                titles.append(title);
+            }
+
+            // Output the titles for debugging purposes
+            qDebug() << titles;
+
+            if (!titles.isEmpty())
+            {
+                ui->label_HotSearch->setText(titles.at(0));
+            }
         }
-
-        // Output the titles for debugging purposes
-        qDebug() << titles;
-
-        ui->label_HotSearch->setText(titles.at(0));
+        else
+        {
+            qDebug() << "没有 data 字段或 data 不是数组";
+        }
     }
     else
     {
@@ -1305,6 +1360,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
         qDebug() << s_back.Message;
     }
 }
+
 int MainWindow::DisposePciteureJson(S_HTTP_RESPONE s_back)
 {
     qDebug() << s_back.Message;

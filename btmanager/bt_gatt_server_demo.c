@@ -94,7 +94,7 @@ static void bt_test_gatt_add_desc_cb(gatts_add_desc_msg_t *msg)
 
 static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
 {
-    char value[1];
+    char value[242];
     static unsigned char count = 0;
     char dev_name[] = "aw_ble_test_1149";
 
@@ -120,8 +120,8 @@ static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
         data.status = 0x0b;
         data.auth_req = 0x00;
         value[0] = count;
-        data.value = value;
-        data.value_len = 1;
+        data.value = "nihaoa";
+        data.value_len = strlen("nihaoa");;
         bt_manager_gatt_server_send_read_response(&data);
         count++;
     }

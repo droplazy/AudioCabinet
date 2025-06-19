@@ -6,8 +6,9 @@
 #include "my_define.h"
 #include "rotatingroundedlabel.h"
 #include <QDateTime>
-#define  PULLUP_ELCLOCK    do{ system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
-#define  PULLDOWN_ELCLOCK    do{ system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
+
+
+
 #define RotationLabel 1
 
 
@@ -52,7 +53,7 @@ public:
     void initSepctrum();
     void CreatSpectrum();
     void smoothData(double spectrumMeta[], int length, double smoothingFactor);
-  //  double calculateAverage(const QVector<double>& arr);
+    bool writeToOutputLock(int value);
       void flushNetUI();
 
 public slots:
