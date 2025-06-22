@@ -158,6 +158,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
     connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);       //
     connect(p_gatt, SIGNAL(wificonfigureupdate()), this, SLOT(getwificonfigure()), Qt::AutoConnection);       //
+    connect(p_gatt, SIGNAL(enrollFinger()), this, SLOT(EnrollFinger()), Qt::AutoConnection);       //
+    connect(p_gatt, SIGNAL(deviceFormat()), this, SLOT(ClearFinger()), Qt::AutoConnection);       //
 
     p_keyevent->start();
     p_finger->start();
@@ -204,7 +206,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         qDebug() << "flush UI reupdate;";
         flushOK = false;
     });
-    timer_3->start(60*1000*1);
+    timer_3->start(60*1000*5);
 
 }
 int MainWindow::getNetCheckCount()
@@ -1138,15 +1140,15 @@ void MainWindow::checkNetworkStatus()
     process.waitForFinished();                                              // 等待 ping 命令完成
 
     QString output = process.readAllStandardOutput(); // 获取 ping 命令的输出
-    qDebug() << "Ping output:" << output;
+  //  qDebug() << "Ping output:" << output;
 
     qint64 elapsed = timer.elapsed();                                     // 获取从启动到现在的时间（毫秒）
-    qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
+  //  qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
 
     // 修改后的判断逻辑，确保字符串完全匹配
     if (output.contains("1 packets transmitted, 1 packets received"))
     {
-        qDebug() << "Device is connected to the network.";
+      //  qDebug() << "Device is connected to the network.";
         network = true;
 
         if (timer_2->isActive()) {
@@ -1182,7 +1184,7 @@ void MainWindow::checkNetworkStatus()
                  qDebug() << "Invalid interval value: " << interval;
              }
         }
-        qDebug() << "Device is not connected to the network.";
+   //     qDebug() << "Device is not connected to the network.";
     }
 }
 void MainWindow::getwificonfigure()
@@ -1190,7 +1192,14 @@ void MainWindow::getwificonfigure()
     flushOK =false;
     checkNetworkStatus();
 }
-
+void MainWindow::EnrollFinger()
+{
+    p_finger->AutoEnroll();
+}
+void MainWindow::ClearFinger()
+{
+    p_finger->clearfinger();
+}
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
 {
     // 将输入的 QString 转换为整数（毫秒数）

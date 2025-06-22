@@ -20,6 +20,7 @@ uint8_t  parseResponsePackage( uint8_t* package, size_t packageLength, uint8_t* 
 int  CancelGeneralPackage(unsigned char* package);
 int  AutoEnrollGeneralPackage(unsigned char* package, uint16_t id_count, uint8_t roll_cnt, uint16_t param);
 int  AutoIdentifyuGeneralPackage(unsigned char* package,uint8_t level,uint16_t id_type,uint16_t param);
+int  ClearFingerprintLibraryPackage(unsigned char* package);
 
 
 #ifdef __cplusplus

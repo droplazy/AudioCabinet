@@ -16,7 +16,8 @@
 typedef enum{
     FO_NOP = 0,
     FO_MATCH =1,
-    FO_ENROLL =2
+    FO_ENROLL =2,
+    FO_CLEAR  =3
 }FINGERT_OPTION;
 
 
@@ -31,8 +32,7 @@ public:
     void AutoEnroll();
     void AutoIdentify();
     int GetFingerInputFile();
-
-
+    void clearfinger();
 private:
     int ttyFD;
     QFile Input_file();

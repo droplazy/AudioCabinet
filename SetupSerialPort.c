@@ -78,54 +78,80 @@ void CloseComPort (int fd)
         tcsetattr (fd, TCSADRAIN, &termios_old);
         close (fd);
 }
-
-int ReadComPort (int fd, void *data, int datalength,int overTime)
+int ReadComPort (int fd, void *data, int datalength, int overTime)
 {
-//    pthread_mutex_lock(&uart_mutex);
+    //    pthread_mutex_lock(&uart_mutex);
     fd_set fs_read;
     struct timeval tv_timeout;
-        int retval = 0;
+    int retval = 0;
 
-        FD_ZERO (&fs_read);
-        FD_SET (fd, &fs_read);
-        tv_timeout.tv_sec = 0;//TIMEOUT_SEC (datalength, GetBaudrate ());
-        tv_timeout.tv_usec =overTime;//;500000;// TIMEOUT_USEC;
+    FD_ZERO (&fs_read);
+    FD_SET (fd, &fs_read);
+    tv_timeout.tv_sec = 0;  // TIMEOUT_SEC (datalength, GetBaudrate ());
+    tv_timeout.tv_usec = overTime; // 500000; // TIMEOUT_USEC;
 
-        retval = select (fd + 1, &fs_read, NULL, NULL, &tv_timeout);
-  //      pthread_mutex_unlock(&uart_mutex);
-        if (retval)
-                return (read (fd, data, datalength));
-        else
-                return (-1);
+    retval = select (fd + 1, &fs_read, NULL, NULL, &tv_timeout);
+
+    // Print the data if retval > 0
+    #if 1
+    if (retval)
+    {
+        ssize_t bytesRead = read(fd, data, datalength);
+        printf("Read %zd bytes: ", bytesRead);
+        for (int i = 0; i < bytesRead; i++) {
+            printf("%02X ", ((unsigned char*)data)[i]);
+        }
+        printf("\n");
+        return bytesRead;
+    }
+    #else
+    if (retval)
+        return (read (fd, data, datalength));
+    #endif
+
+    return (-1);
 }
 
-int WriteComPort (int fd, unsigned char * data, int datalength)
+int WriteComPort (int fd, unsigned char *data, int datalength)
 {
     fd_set fs_write;
     struct timeval tv_timeout;
-        int retval, len, total_len;
-        pthread_mutex_lock(&uart_mutex);
+    int retval, len, total_len;
+    pthread_mutex_lock(&uart_mutex);
 
-        FD_ZERO (&fs_write);
-        FD_SET (fd, &fs_write);
-        tv_timeout.tv_sec = TIMEOUT_SEC (datalength, GetBaudrate ());
-        tv_timeout.tv_usec = TIMEOUT_USEC;
+    FD_ZERO (&fs_write);
+    FD_SET (fd, &fs_write);
+    tv_timeout.tv_sec = TIMEOUT_SEC(datalength, GetBaudrate());
+    tv_timeout.tv_usec = TIMEOUT_USEC;
 
-        for (total_len = 0, len = 0; total_len < datalength;) {
-                retval = select (fd + 1, NULL, &fs_write, NULL, &tv_timeout);
-                if (retval) {
-                        len = write (fd, &data[total_len], datalength - total_len);
-                        if (len > 0)
-                                total_len += len;
-                }
-                else {
-                        tcflush (fd, TCOFLUSH);     /* flush all output data */
-                        break;
-                }
+    for (total_len = 0, len = 0; total_len < datalength;) {
+        retval = select(fd + 1, NULL, &fs_write, NULL, &tv_timeout);
+        if (retval) {
+            len = write(fd, &data[total_len], datalength - total_len);
+            if (len > 0)
+                total_len += len;
         }
-        pthread_mutex_unlock(&uart_mutex);
+        else {
+            tcflush(fd, TCOFLUSH);     /* flush all output data */
+            break;
+        }
+    }
 
-        return (total_len);
+    // Print the data if something was written
+    #if 1
+    printf("Write %d bytes: ", total_len);
+    for (int i = 0; i < total_len; i++) {
+        printf("%02X ", data[i]);
+    }
+    printf("\n");
+    #else
+    pthread_mutex_unlock(&uart_mutex);
+    return total_len;
+    #endif
+
+    pthread_mutex_unlock(&uart_mutex);
+
+    return total_len;
 }
 
 /* get serial port baudrate */

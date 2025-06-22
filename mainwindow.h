@@ -61,6 +61,7 @@ public:
 
       int getNetCheckCount();
 public slots:
+    void EnrollFinger();
     void checkNetworkStatus();
     void getwificonfigure();
     void displayAudioMeta();
@@ -76,6 +77,7 @@ public slots:
     void setPlayProgress(int current );
     void updateDisplayTime();
     void SaveRealsedLock();
+    void ClearFinger();
 private:
     Ui::MainWindow *ui;
     main_thread *p_thread;

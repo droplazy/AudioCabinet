@@ -25,8 +25,8 @@ void FingerThread::run()
     unsigned char message[128]={0};
     HandShakeCheck();
 
-    // sleep(1);
-    // AutoEnroll();
+//     sleep(1);
+//     AutoEnroll();
 
 
 
@@ -35,10 +35,16 @@ void FingerThread::run()
        // if()
 
         ret = GetFingerInputFile();
-       // qDebug() << "FINGER INPUT : " <<ret <<"FINGER TYPe : " << Fig_Opt;
-        if(ret == 1 && Fig_Opt!= FO_ENROLL)
-        {
+      //  qDebug() << "FINGER INPUT : " <<ret <<"FINGER TYPe : " << Fig_Opt;
+        if(GetFingerInputFile() && Fig_Opt!= FO_ENROLL)
+        {//&& Fig_Opt== FO_MATCH
+            usleep(300*1000);
+            if(GetFingerInputFile())
+            {
+                qDebug() << "检测到指纹按下";
             AutoIdentify();
+            Fig_Opt== FO_MATCH;
+            }
         }
      //   usleep(100*1000);
 #if 1
@@ -53,7 +59,7 @@ void FingerThread::run()
             size_t returnParamsLength = 0;
            uint8_t result =  parseResponsePackage(message, (size_t) ret, returnParams, &returnParamsLength);
             if (result != 0xff) {
-                printf("解析成功！len = %d confirmcode %02x 返回参数：",returnParamsLength,result);
+                printf("opt : %d 解析成功！len = %d confirmcode %02x 返回参数：",Fig_Opt,returnParamsLength,result);
                 for (size_t i = 0; i < returnParamsLength; i++) {
                     printf("0x%02x ", returnParams[i]);
                 }
@@ -70,6 +76,27 @@ void FingerThread::run()
                         qDebug() <<"指纹录入失败";
                         Fig_Opt =FO_NOP;
                     }
+                    else if(returnParams[0] == 0x03  && result == 0x00)
+                    {
+                        qDebug() <<"第" <<returnParams[1] <<"次指纹录入成功 ";
+                      //  Fig_Opt =FO_NOP;
+                    }
+                    else if(returnParams[0] == 0x05&&returnParams[1] == 0x01  && result == 0x00)
+                    {
+                        qDebug() <<"指纹已经注册";
+                        Fig_Opt =FO_NOP;
+                    }
+                    else if(result == 0x26)
+                    {
+                        qDebug() <<"指纹录入超时";
+                        Fig_Opt =FO_NOP;
+                    }
+                    else
+                     {
+                            qDebug() <<"未知错误";
+                         //   Fig_Opt =FO_NOP;
+                      }
+
                 }
                 if(Fig_Opt== FO_MATCH  )
                 {
@@ -94,6 +121,19 @@ void FingerThread::run()
                     {
                     
                         qDebug() <<"空指令 score = "<<(int)score;
+                        Fig_Opt =FO_NOP;
+                    }
+                }
+                if(Fig_Opt ==FO_CLEAR)
+                {
+                    if(returnParams[0] == 00)
+                    {
+                    qDebug() <<"指纹清空成功";
+                    Fig_Opt =FO_NOP;
+                    }
+                    else if(result == 0x01 || result == 0x11 )
+                    {
+                        qDebug() <<"指纹清空失败";
                         Fig_Opt =FO_NOP;
                     }
                 }
@@ -161,17 +201,34 @@ bool FingerThread::HandShakeCheck()
  * */
 void FingerThread::AutoEnroll()
 {
+    qDebug() << "开始录入指纹";
     unsigned char message[128]={0};
     int lenth = 0;
     uint16_t param = 0x0B;//       00 1011
 
 
-    lenth = AutoEnrollGeneralPackage(message,0x0001,0x0003,param);
+    lenth = AutoEnrollGeneralPackage(message,0x0001,0x0005,param);
 
     printHex((uint8_t* )message,(size_t)lenth);
 
     WriteComPort(ttyFD,message,lenth);
     Fig_Opt =FO_ENROLL;
+}
+
+void FingerThread::clearfinger()
+{
+    qDebug() << "清空指纹库";
+    unsigned char message[128]={0};
+    int lenth = 0;
+    //uint16_t param = 0x0B;//       00 1011
+
+
+    lenth = ClearFingerprintLibraryPackage(message);
+
+    printHex((uint8_t* )message,(size_t)lenth);
+
+    WriteComPort(ttyFD,message,lenth);
+    Fig_Opt =FO_CLEAR;
 }
 /*
 ID 号：2byte，大端模式。比如录入1 号指纹，则是0001H。ID 号为0xFFFF，则进行

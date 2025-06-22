@@ -23,6 +23,9 @@ public:
     void parseJson(const QString &jsonString);
 signals:
     void wificonfigureupdate();
+    void enrollFinger();
+    void deviceFormat();
+
 };
 
 #endif // GATTTHREAD_H

@@ -69,11 +69,13 @@ static void bt_test_adapter_status_cb(btmg_adapter_state_t status)
         BTMG_INFO("BT is ON");
         bt_manager_get_adapter_address(bt_addr);
         if (bt_addr[0] != '\0') {
-            snprintf(bt_name_buf, 14, "aw-bt-test-%s-", (char *)(bt_addr + 12));
+            printf("%s\n",bt_addr);
+            snprintf(bt_name_buf, 12, "ZW-AUDIO-%s-", (char *)(bt_addr + 12));
             sprintf(bt_name, "%s-%s", bt_name_buf, (char *)(bt_addr + 15));
+             printf("%s\n",bt_name);
             bt_manager_set_adapter_name(bt_name);
         } else {
-            bt_manager_set_adapter_name("aw-bt-test");
+            bt_manager_set_adapter_name("ZW-AUDIO");
         }
         if (is_background)
             bt_manager_agent_set_io_capability(BTMG_IO_CAP_NOINPUTNOOUTPUT);

@@ -241,6 +241,25 @@ int  AutoEnrollGeneralPackage(unsigned char* package,uint16_t id_count,uint8_t r
     memcpy(package,commandPackage,commandLength);
                 return commandLength;
 }
+
+
+int  ClearFingerprintLibraryPackage(unsigned char* package)
+{
+    uint32_t deviceAddress = DEFAULT_DEVICE_ADDRESS;  // 示例设备地址
+    uint8_t command = 0x0D;               // 示例指令
+    uint8_t params[1] = {0};      // 示例参数
+
+   uint8_t commandPackage[256];
+
+    size_t commandLength = generateCommandPackage(deviceAddress, command, params, 0, commandPackage);
+                //printf("Command Package: ");
+                //printHex(commandPackage, commandLength);
+                //printf("Command Package Length: %zu\n", commandLength);
+    memcpy(package,commandPackage,commandLength);
+                return commandLength;
+}
+
+
 int  AutoIdentifyuGeneralPackage(unsigned char* package,uint8_t level,uint16_t id_type,uint16_t param)
 {
     uint32_t deviceAddress = DEFAULT_DEVICE_ADDRESS;  // 示例设备地址

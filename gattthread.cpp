@@ -28,22 +28,7 @@ void gattthread::run()
             // 手动在字符串末尾添加 '\0'，以防止溢出
             value_str[global_gattMsg_recive.value_len] = '\0';
 
-            // 检查字符串是否包含非打印字符或乱码
-            int is_garbled = 0;
-            for (int i = 0; i < global_gattMsg_recive.value_len; i++) {
-                if (value_str[i] < 32 || value_str[i] > 126) {  // 检查是否为 ASCII 可打印字符
-                    is_garbled = 1;
-                    break;
-                }
-            }
 
-            // 如果包含非打印字符或乱码，打印错误信息
-            if (is_garbled) {
-                printf("收到的信息错吴\n");
-            } else {
-                // 否则打印接收到的字符串
-                printf("收到的字符串: %s\n", value_str);
-            }
         }
 #endif
         parseJson(value_str);
@@ -127,12 +112,15 @@ void gattthread::handleFormat(const QString &data)
 {
     qDebug() << "Format Operation:";
     qDebug() << "Data:" << data;
+    emit deviceFormat();
 }
 
 void gattthread::handleFingerprintEnrollment(const QString &data)
 {
     qDebug() << "Fingerprint Enrollment Operation:";
     qDebug() << "Data:" << data;
+    emit enrollFinger();
+
 }
 
 void gattthread::parseJson(const QString &jsonString)
