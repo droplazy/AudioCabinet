@@ -59,6 +59,11 @@ void RotatingRoundLabel::paintEvent(QPaintEvent *event)
 
 void RotatingRoundLabel::onTimeout()
 {
+
+
+
+
+    \
     // 更新旋转角度
     angle += 1;  // 每次增加1度
     if (angle >= 360) {
