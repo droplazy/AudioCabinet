@@ -41,6 +41,9 @@
 
 static uint16_t service_handle;
 char device_name[28] = "aw-ble-test-007";
+int GetMsgFlag = 0;
+char sendmessage[256]={0} ;
+gatts_char_write_req_t global_gattMsg_recive;
 
 static void bt_test_gatt_connection_cb(char *addr, gatts_connection_event_t event, int err)
 {
@@ -102,7 +105,7 @@ static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
            chr_read->offset);
 
     if (chr_read) {
-        if (chr_read->attr_handle == dev_name_char_handle) {
+       /* if (chr_read->attr_handle == dev_name_char_handle) {
             gatts_send_read_rsp_t data;
             data.trans_id = chr_read->trans_id;
             data.attr_handle = chr_read->attr_handle;
@@ -113,15 +116,16 @@ static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
             data.value_len = strlen(dev_name);
             bt_manager_gatt_server_send_read_response(&data);
             return;
-        }
+        }*/
         gatts_send_read_rsp_t data;
         data.trans_id = chr_read->trans_id;
         data.attr_handle = chr_read->attr_handle;
         data.status = 0x0b;
         data.auth_req = 0x00;
-        value[0] = count;
-        data.value = "nihaoa";
-        data.value_len = strlen("nihaoa");;
+//        value[0] = count;
+        data.value = sendmessage;
+        data.value_len = strlen(sendmessage);
+      //  memcpy(&data ,&global_gattMsg_send,sizeof(gatts_send_read_rsp_t));
         bt_manager_gatt_server_send_read_response(&data);
         count++;
     }
@@ -159,7 +163,11 @@ static void bt_test_gatt_char_write_request_cb(gatts_char_write_req_t *char_writ
     if (char_write) {
         BTMG_INFO("attr_handle: 0x%04x, tran_id: %d, len: %d", char_write->attr_handle, char_write->trans_id, char_write->value_len);
         bt_manager_hex_dump((char *)" ", 20, (unsigned char *)char_write->value, char_write->value_len);
+        GetMsgFlag = 1;
+        memcpy(&global_gattMsg_recive, char_write, sizeof(gatts_char_write_req_t));
+
     }
+
 #endif
 
     if (char_write->need_rsp) {

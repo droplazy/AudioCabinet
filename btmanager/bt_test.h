@@ -109,6 +109,11 @@ extern btmg_avrcp_play_state_t get_state;
 extern int trackUpdate;
 extern int switchFlag;
 extern char blue_addr[];
+
+extern int GetMsgFlag ;
+extern char sendmessage[256];
+extern gatts_char_write_req_t global_gattMsg_recive;
+
 /*gatt client*/
 void bt_gatt_client_register_callback(btmg_callback_t *cb);
 int bt_gatt_client_init();

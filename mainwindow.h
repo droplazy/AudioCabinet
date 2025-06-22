@@ -19,6 +19,9 @@ class Btmanager_thread;
 class main_thread;
 class FingerThread;
 class Key_event;
+class gattthread;
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -56,8 +59,10 @@ public:
     bool writeToOutputLock(int value);
       void flushNetUI();
 
+      int getNetCheckCount();
 public slots:
     void checkNetworkStatus();
+    void getwificonfigure();
     void displayAudioMeta();
     void UserAddFinger();
     void displaySpectrum();
@@ -75,6 +80,7 @@ private:
     Ui::MainWindow *ui;
     main_thread *p_thread;
     FingerThread *p_finger;
+    gattthread *p_gatt;
     Key_event *p_keyevent;
     HttpClient *p_http;
   //  btmg_avrcp_play_state_t a_sta= BTMG_AVRCP_STOP;
@@ -98,6 +104,12 @@ private:
     QLabel *label_aumblePic;
     int  fallspeed[60]={0};
     int fallCount[60]={0};
+    bool flushOK =false;
+    bool network =false;
+        QTimer *timer_1 = new QTimer();
+        QTimer *timer_2 = new QTimer();
+        QTimer *timer_3 = new QTimer();
+    //    QTimer *timer_4 = new QTimer();
 };
 
 

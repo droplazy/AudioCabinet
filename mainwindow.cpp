@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "main_thread.h"
+#include "gattthread.h"
 #include "ui_mainwindow.h"
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -26,8 +27,12 @@
 #include <QJsonArray>
 #include <QElapsedTimer> // 引入 QElapsedTimer
 
-#define NETCHECK_COUNT 1500000
+#define NETCHECK_COUNT_FALSE 1000
+#define NETCHECK_COUNT_TRUE (60 * 1000)
 
+
+
+#define UIFLUSH_COUNT 60*1000*5
 #define  PULLUP_ELCLOCK    writeToOutputLock(1);//do{ my_system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
 #define  PULLDOWN_ELCLOCK  writeToOutputLock(0);  //do{ my_system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
 
@@ -147,15 +152,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     p_thread = new main_thread();
     p_finger = new FingerThread();
     p_keyevent = new Key_event();
-
+    p_gatt =new gattthread();
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
     // connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
     connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
     connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);       //
+    connect(p_gatt, SIGNAL(wificonfigureupdate()), this, SLOT(getwificonfigure()), Qt::AutoConnection);       //
+
     p_keyevent->start();
     p_finger->start();
     p_thread->start();
-
+    p_gatt->start();
 #if RotationLabel
 
     label_around = new RotatingRoundLabel(108, this); // 创建一个半径为100的圆形标签
@@ -178,7 +185,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #if 1
 
     // setPlayProgress(0);
-    QTimer *timer_1 = new QTimer();
+   // QTimer *timer_1 = new QTimer();
     connect(timer_1, &QTimer::timeout, this, &MainWindow::displaySpectrum);
     timer_1->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
 
@@ -187,11 +194,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #endif
 
     checkNetworkStatus();
-    QTimer *timer_2 = new QTimer();
+  //  QTimer *timer_2 = new QTimer();
     connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
-    timer_2->start(NETCHECK_COUNT); // 每20ms更新一次（可根据需要调整旋转速度）
-}
+    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
 
+
+  //  QTimer *timer_3 = new QTimer();
+    connect(timer_3, &QTimer::timeout, this, [this]() {
+        qDebug() << "flush UI reupdate;";
+        flushOK = false;
+    });
+    timer_3->start(60*1000*1);
+
+}
+int MainWindow::getNetCheckCount()
+{
+    return network ? NETCHECK_COUNT_TRUE : NETCHECK_COUNT_FALSE;
+}
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -1099,12 +1118,14 @@ void MainWindow::DebugChache()
 
 void MainWindow::flushNetUI()
 {
+    if(flushOK == true)
+    return ;
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
-
     GetDeviceIP();
     GetHotSearch();
     GetDateToday();
     GetWeatherToday();
+    flushOK= true;
     // GetOnewords();
 }
 
@@ -1126,12 +1147,48 @@ void MainWindow::checkNetworkStatus()
     if (output.contains("1 packets transmitted, 1 packets received"))
     {
         qDebug() << "Device is connected to the network.";
+        network = true;
+
+        if (timer_2->isActive()) {
+            timer_2->stop(); // 确保定时器停止
+        }
+
+        int interval = getNetCheckCount(); // 获取定时器间隔
+        if (interval > 0) {
+            qDebug() << "Timer interval: " << interval;
+            timer_2->start(interval); // 使用新的间隔启动定时器
+        } else {
+            qDebug() << "Invalid interval value: " << interval;
+        }
+
         flushNetUI();
     }
     else
     {
+        if(network)
+        {
+            network = false;
+
+             qDebug() << "network from true to false ";
+             if (timer_2->isActive()) {
+                 timer_2->stop(); // 确保定时器停止
+             }
+
+             int interval = getNetCheckCount(); // 获取定时器间隔
+             if (interval > 0) {
+                 qDebug() << "Timer interval: " << interval;
+                 timer_2->start(interval); // 使用新的间隔启动定时器
+             } else {
+                 qDebug() << "Invalid interval value: " << interval;
+             }
+        }
         qDebug() << "Device is not connected to the network.";
     }
+}
+void MainWindow::getwificonfigure()
+{
+    flushOK =false;
+    checkNetworkStatus();
 }
 
 QString MainWindow::convertDurationToTimeFormat(const QString &durationStr)
