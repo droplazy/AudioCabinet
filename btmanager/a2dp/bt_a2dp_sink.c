@@ -476,17 +476,24 @@ static int a2dp_sink_stream_start(uint8_t channels, uint32_t sampling)
 
     return BT_OK;
 }
-#define  PULLUP_SD    do{ \
-                        usleep(500*1000); \
-                        system("echo 1 > /proc/rp_gpio/output_sd"); \
-                        printf("功放打开\n"); \
+#define PULLUP_SD    do { \
+                        usleep(500 * 1000); \
+                        int ret = system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放打开\n"); \
+                        } else { \
+                            printf("功放打开失败，写入失败\n"); \
+                        } \
                     } while(0)
 
-#define  PULLDOWN_SD    do{ \
-                        system("echo 0 > /proc/rp_gpio/output_sd"); \
-                        printf("功放关闭\n"); \
+#define PULLDOWN_SD  do { \
+                        int ret = system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放关闭\n"); \
+                        } else { \
+                            printf("功放关闭失败，写入失败\n"); \
+                        } \
                     } while(0)
-
 static int a2dp_sink_stream_stop(void)
 {
 PULLDOWN_SD;

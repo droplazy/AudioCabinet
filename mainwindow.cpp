@@ -358,75 +358,8 @@ void MainWindow::initSepctrum()
         }
     }
 }
-// 设置 QLabel 的字体和大小（可选）
-//   label->setStyleSheet("font-size: 20px; font-weight: bold; color: blue;");
-void MainWindow::CreatSpectrum()
-{
-    int spacing = 2;
-    int x = 3;
-    int total_labels = 60;               // 假设有61个标签
-    int center_index = total_labels / 2; // 计算中间标签的索引
 
-    QImage *img_1 = new QImage;       // 新建一个image对象
-    img_1->load(":/ui/spectrum.png"); // 将图像资源载入对象img，注意路径
-    QPixmap pixmap = QPixmap::fromImage(*img_1).scaled(11, 91, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    /*   QImage *img_2 = new QImage;  // 新建一个image对象
-       img_2->load(":/Spectrum_single2.png");  // 将图像资源载入对象img，注意路径
-   */
-    // 计算标签的位置：从中间开始依次向两边散开
-    for (int i = 0; i < total_labels; i++)
-    {
-        int offset = i / 2; // 偏移量，用于计算标签的位置
-        int label_position;
 
-        // 如果是偶数索引，表示从中间往左放
-        if (i % 2 == 0)
-        {
-            label_position = center_index - offset;
-        }
-        else
-        {                                               // 如果是奇数索引，表示从中间往右放
-            label_position = center_index + offset + 1; // 在奇数位置加一个额外的偏移量，防止重叠
-        }
-
-        // 创建并设置 labels_bottom
-        /* labels_bottom[i] = new QLabel(this);
-         labels_bottom[i]->setObjectName(QString("spectrum_bottom_%1").arg(i + 1));  // 显式设置 objectName
-         labels_bottom[i]->move(x + label_position * (11 + spacing), 480 - 3);  // 设置 QLabel 的位置
-         labels_bottom[i]->setPixmap(QPixmap::fromImage(*img_2));
-         labels_bottom[i]->resize(11, 111);*/
-
-        // 创建并设置 labels_top
-        labels_top[i] = new QLabel(this);
-        labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1)); // 显式设置 objectName
-        labels_top[i]->move(x + label_position * (11 + spacing), 480);       // 设置 QLabel 的位置
-                                                                             // labels_top[i]->setPixmap(QPixmap::fromImage(*img_1));pixmap
-        labels_top[i]->setPixmap(pixmap);
-        labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red;"); // 可选样式
-        labels_top[i]->raise();                                                          // 将 labels_top 放在最上层
-        labels_top[i]->resize(11, 92);
-
-        // qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
-    }
-
-    // 创建进度条标签
-    /*label_progressbar_bottom = new QLabel(QString("label_progressbar_bottom"), this);
-    label_progressbar_top = new QLabel(QString("label_progressbar_top"), this);
-
-    label_progressbar_top->resize(800, 5);
-    label_progressbar_bottom->resize(800, 5);
-
-    label_progressbar_top->clear();
-    label_progressbar_bottom->clear();
-
-    label_progressbar_top->setStyleSheet("background-color: rgb(46, 87, 47);border-radius:2px;");  // 可选样式
-    label_progressbar_bottom->setStyleSheet("background-color: rgb(136, 138, 133);");  // 可选样式
-
-    label_progressbar_bottom->move(0, 200);
-    label_progressbar_bottom->raise();
-    label_progressbar_top->move(0, 200);
-    label_progressbar_top->raise();*/
-}
 void MainWindow::GetWeatherOnIp()
 {
     QUrl url(URL_WEATHER_IP);
@@ -823,167 +756,65 @@ void MainWindow::displaySpectrumFall()
         }
     }
 }
-
-void MainWindow::displaySpectrum()
+void MainWindow::CreatSpectrum()
 {
-    // static int fall = 0;
-    /*  if (get_state != BTMG_AVRCP_PLAYSTATE_PLAYING &&get_state != BTMG_A2DP_SINK_AUDIO_STARTED)
-     {
-         label_around->stopRotation();
-       //  qDebug() <<get_state <<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-         return;
-     }*/
-    if (strlen(blue_addr) > 0)
-    {
-        p_keyevent->blue_addr = blue_addr;
-    }
-    else if (strlen(blue_addr) == 0)
-    {
-        p_keyevent->blue_addr.clear();
-    }
+    int spacing = 1;
+    int x = -14;
+    int total_labels = 30;               // 将标签数量修改为30
+    int center_index = total_labels / 2; // 计算中间标签的索引
 
-    if (readOutputSD() != 1)
-    {
-        label_around->stopRotation();
-        // qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        return;
-    }
-    label_around->startRotation();
-    double original_min = 0;        // 原始数据的最小值
-    double original_max = 99999999; // 原始数据的最大值
+    QImage *img_1 = new QImage;       // 新建一个image对象
+    img_1->load(":/ui/spectrum.png"); // 将图像资源载入对象img，注意路径
+    // 将图片大小调整为适应 27*145 的尺寸
+    QPixmap pixmap = QPixmap::fromImage(*img_1).scaled(25, 90, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    // 使用一个for循环遍历数组，找到最大值和最小值
-    for (int i = 0; i < 60; ++i)
+    // 计算标签的位置：从中间开始依次向两边散开
+    for (int i = 0; i < total_labels; i++)
     {
-        if (p_thread->spectrumMeta[i] > original_max)
+        int offset = i / 2; // 偏移量，用于计算标签的位置
+        int label_position;
+
+        // 如果是偶数索引，表示从中间往左放
+        if (i % 2 == 0)
         {
-            original_max = p_thread->spectrumMeta[i]; // 更新最大值
-        }
-        if (p_thread->spectrumMeta[i] < original_min)
-        {
-            original_min = p_thread->spectrumMeta[i]; // 更新最小值
-        }
-    }
-
-    // 输出最大值和最小值
-    // qDebug() << "Max Value:" << original_max;
-    // qDebug() << "Min Value:" << original_min;
-
-    double newHeight[60] = {0};
-    for (size_t i = 0; i < 60; i++)
-    {
-        newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92 - 1));
-        if (newHeight[i] < 1)
-            newHeight[i] = 1;
-        if (newHeight[i] > 92)
-            newHeight[i] = 92;
-        // qDebug()  << "height: "<< newHeight[i];
-    }
-
-    smoothData(newHeight, 60, 0.95);
-
-    /*  for (int i = 0; i < 60; ++i) {
-              sum += p_thread->spectrumMeta[i];
-          }
-      qDebug() << "Average:" << sum / 600000;*/
-
-    /*  for (int i = 0; i <60; ++i)
-      {
-          double currentValue = p_thread->spectrumMeta[i - 1];  // 获取当前值
-
-                  // 更新最大值
-                  if (currentValue > original_max) {
-                      original_max = currentValue;
-                  }
-
-                  // 更新最小值
-                  if (currentValue < original_min) {
-                      original_min = currentValue;
-                  }
-      }
-          original_max = (original_max < 5658100) ? 5658100 : (original_max < 56581000 ? 56581000 : original_max);
-          qDebug() << "original_min" <<original_min <<"original_max" <<original_max;*/
-#if 1
-    for (int i = 1; i <= 60; ++i)
-    {
-
-        if (labels_top[i - 1])
-        { // 如果标签存在
-            // 只更改高度，保持宽度不变
-
-            // qDebug() << i << labels_top[i-1]->objectName();
-            //  int newHeight = scaled_value;
-            //    qDebug() << labelName <<"newHeight"<<newHeight << "meta "<<p_thread->spectrumMeta[i] ;
-
-            // a_label->resize(a_label->width(), newHeight); 370 ~430 60
-            QPoint currentPos = labels_top[i - 1]->pos();
-
-            labels_top[i - 1]->move(currentPos.x(), 480 - (int)newHeight[i - 1]);
-
-            // currentPos =labels_bottom[i-1]->pos();
-            if (labels_top[i - 1]->pos().y() <= currentPos.y())
-            {
-                currentPos.setY(labels_top[i - 1]->pos().y() - 3); // 使用 setY() 来修改 y 坐标
-            }
-            //                 fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
-
-            /*  else
-              {
-                  fallspeed[i-1] =(labels_top[i-1]->pos().y() - currentPos.y()  ) ;
-                  qDebug() <<"fallspeed[" << i-1 <<"] = " <<fallspeed[i-1]  ;
-
-                  if(currentPos.y() <480-3)
-                  {
-
-                      //if(currentPos.y()-labels_top[i-1]->pos().y()  >=3)
-                      if((fallspeed[i-1] --) > =2  )
-                      {
-                      currentPos.setY(currentPos.y()+1);  // 使用 setY() 来修改 y 坐标
-
-                      }
-
-                  }
-              }*/
-
-            //    currentPos.setY(currentPos.y()-1);  // 使用 setY() 来修改 y 坐标
-            //    labels_bottom[i-1]->move(currentPos.x(),currentPos.y());
-            //    qDebug() << i-1 << labels_top[i-1]->objectName() << "Y:" << labels_top[i-1]->pos().y() << "height: "<< newHeight[i-1] <<"meta:"<<p_thread->spectrumMeta[i-1];
-            //            qDebug() << i << labels_bottom[i-1]->objectName() << "Y:" << labels_bottom[i-1]->pos().y();
+            label_position = center_index - offset;
         }
         else
-        {
-            qDebug() << i << "not found!";
+        {                                               // 如果是奇数索引，表示从中间往右放
+            label_position = center_index + offset + 1; // 在奇数位置加一个额外的偏移量，防止重叠
         }
+
+        // 创建并设置 labels_top
+        labels_top[i] = new QLabel(this);
+        labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1)); // 显式设置 objectName
+        labels_top[i]->move(x + label_position * (25 + spacing), 480);       // 设置 QLabel 的位置
+        labels_top[i]->setPixmap(pixmap);
+       // labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red; background-color: blue;");
+        labels_top[i]->raise();                                                          // 将 labels_top 放在最上层
+        labels_top[i]->resize(25, 90); // 调整标签大小为27x145
+       // labels_top[i]->setText(QString::number(i + 1));
+         qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
-    /* if (switchFlag)
-     {
 
-         if (positonoffset == 0 || abs(positonoffset -playing_pos) >5000)
-         {
-             positonoffset = playing_pos;
-         }
-         else
-         {
-             if (playing_pos-positonoffset>0)
-             {
-                 offsetReduce++;
-             }
-             else
-             {
-                 offsetReduce--;
-             }
+    // 创建进度条标签
+    /*label_progressbar_bottom = new QLabel(QString("label_progressbar_bottom"), this);
+    label_progressbar_top = new QLabel(QString("label_progressbar_top"), this);
 
-         }
-         switchFlag = 0;
-     }
-     positonoffset += offsetReduce;
-     currentPosition = static_cast<int>((static_cast<float>(positonoffset) / playing_len) * 800);*/
-    // setPlayProgress(currentPosition);
+    label_progressbar_top->resize(800, 5);
+    label_progressbar_bottom->resize(800, 5);
 
-    //  qDebug() << "currentPosition" << currentPosition << "playing_pos" << playing_pos << "playing_len" << playing_len << "get_state" << get_state;
+    label_progressbar_top->clear();
+    label_progressbar_bottom->clear();
 
-#endif
+    label_progressbar_top->setStyleSheet("background-color: rgb(46, 87, 47);border-radius:2px;");  // 可选样式
+    label_progressbar_bottom->setStyleSheet("background-color: rgb(136, 138, 133);");  // 可选样式
+
+    label_progressbar_bottom->move(0, 200);
+    label_progressbar_bottom->raise();
+    label_progressbar_top->move(0, 200);
+    label_progressbar_top->raise();*/
 }
+
 int MainWindow::GetGpioStatus(QString GPIO_fILE)
 {
     QString filePath = GPIO_fILE;
@@ -1300,7 +1131,74 @@ void MainWindow::wifiLaunch() // todo
     // system("wifi -o sta\n");
     // system("wifi -c ThanksGivingDay_111 Zz123456\n"); // todo
 }
+void MainWindow::displaySpectrum()
+{
+    if (strlen(blue_addr) > 0)
+    {
+        p_keyevent->blue_addr = blue_addr;
+    }
+    else if (strlen(blue_addr) == 0)
+    {
+        p_keyevent->blue_addr.clear();
+    }
 
+    if (readOutputSD() != 1)
+    {
+        label_around->stopRotation();
+        return;
+    }
+    label_around->startRotation();
+
+    double original_min = 0;        // 原始数据的最小值
+    double original_max = 99999999; // 原始数据的最大值
+
+    // Use a for loop to find the maximum and minimum values in the spectrum data
+    for (int i = 0; i < 30; ++i)  // Reduced from 60 to 30 labels
+    {
+        if (p_thread->spectrumMeta[i] > original_max)
+        {
+            original_max = p_thread->spectrumMeta[i]; // Update maximum value
+        }
+        if (p_thread->spectrumMeta[i] < original_min)
+        {
+            original_min = p_thread->spectrumMeta[i]; // Update minimum value
+        }
+    }
+
+    double newHeight[30] = {0};  // Reduced from 60 to 30 labels
+    for (size_t i = 0; i < 30; i++)
+    {
+        newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92 - 1));
+        if (newHeight[i] < 1)
+            newHeight[i] = 1;
+        if (newHeight[i] > 92)
+            newHeight[i] = 92;
+    }
+
+    smoothData(newHeight, 30, 0.95);  // Adjust smooth data for 30 labels
+
+    // Update each label's position and height
+    for (int i = 0; i < 30; ++i)  // Reduced from 60 to 30 labels
+    {
+        if (labels_top[i])
+        { // If the label exists
+            QPoint currentPos = labels_top[i]->pos();
+
+            // Adjust the label height according to the new spectrum data
+            labels_top[i]->move(currentPos.x(), 480 - (int)newHeight[i]);
+
+            // Make sure the label is within bounds and adjust the position if necessary
+            if (labels_top[i]->pos().y() <= currentPos.y())
+            {
+                currentPos.setY(labels_top[i]->pos().y() - 3);  // Adjust Y position
+            }
+        }
+        else
+        {
+            qDebug() << i << "not found!";
+        }
+    }
+}
 void MainWindow::DisposeOneWord(S_HTTP_RESPONE s_back)
 {
     QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());

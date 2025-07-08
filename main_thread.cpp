@@ -62,15 +62,23 @@ main_thread::main_thread()
     // connect(manager, &QNetworkConfigurationManager::onlineStateChanged, this, &main_thread::checkNetworkStatus);
 
 }
-#define  PULLUP_SD    do{ \
-                        usleep(500*1000); \
-                        system("echo 1 > /proc/rp_gpio/output_sd"); \
-                        printf("功放打开\n"); \
+#define PULLUP_SD    do { \
+                        usleep(500 * 1000); \
+                        int ret = system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放打开\n"); \
+                        } else { \
+                            printf("功放打开失败，写入失败\n"); \
+                        } \
                     } while(0)
 
-#define  PULLDOWN_SD    do{ \
-                        system("echo 0 > /proc/rp_gpio/output_sd"); \
-                        printf("功放关闭\n"); \
+#define PULLDOWN_SD  do { \
+                        int ret = system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放关闭\n"); \
+                        } else { \
+                            printf("功放关闭失败，写入失败\n"); \
+                        } \
                     } while(0)
 void main_thread::run()
 {
