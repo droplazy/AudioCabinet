@@ -152,11 +152,11 @@ void gattthread::parseJson(const QString &jsonString)
             QString data = dataValue.toString();
             handleFormat(data);
         }
-    } else if (operationType == "FingerprintEnrollment") {
-        if (dataValue.isString()) {
-            QString data = dataValue.toString();
-            handleFingerprintEnrollment(data);
-        }
+    } else if (operationType == "FingerprintEnroll") {
+        //if (dataValue.isString()) {
+         //   QString data = dataValue.toString();
+            handleFingerprintEnrollment("3");
+        //}
     } else {
         qWarning() << "Unknown operation type:" << operationType;
     }

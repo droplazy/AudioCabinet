@@ -288,8 +288,16 @@ int aw_pcm_get_params(struct pcm_config *pf, snd_pcm_uframes_t *buff_size,
 {
     return snd_pcm_get_params(pf->pcm, buff_size, period_size);
 }
-#define  PULLUP_SD    do{ usleep(500*1000);system("echo 1 > /proc/rp_gpio/output_sd");} while(0)
-#define  PULLDOWN_SD    do{ system("echo 0 > /proc/rp_gpio/output_sd");} while(0)
+#define  PULLUP_SD    do{ \
+                        usleep(500*1000); \
+                        system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        printf("功放打开\n"); \
+                    } while(0)
+
+#define  PULLDOWN_SD    do{ \
+                        system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        printf("功放关闭\n"); \
+                    } while(0)
 int aw_pcm_read(snd_pcm_t *pcm, char *buffer, int frames)
 {
     int actual_frams;
@@ -303,12 +311,12 @@ int aw_pcm_read(snd_pcm_t *pcm, char *buffer, int frames)
         PULLDOWN_SD;
         occurredFlag =1;
         snd_pcm_prepare(pcm);
-        usleep(50000);
+     //   usleep(50000);
         actual_frams = 0;
     } else if (actual_frams < 0) {
         LG_ALSA_ERROR("snd_pcm_readi failed: %s", snd_strerror(actual_frams));
         snd_pcm_prepare(pcm);
-        usleep(50000);
+      //  usleep(50000);
     }
     if (actual_frams != frames) {
         LG_ALSA_ERROR("Short read (expected: %d, actual: %d)", frames, actual_frams);

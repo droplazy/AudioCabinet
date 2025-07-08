@@ -40,7 +40,7 @@ static bool a2dp_stream_enable = false;
 static pthread_mutex_t a2dp_sink_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *pcm_data[2048] ={0};
-int volume_scale =10;
+int volume_scale =20;
 int pcm_lenth =0;
 
 static struct pcm_config a2dp_sink_pcm = {
@@ -476,8 +476,16 @@ static int a2dp_sink_stream_start(uint8_t channels, uint32_t sampling)
 
     return BT_OK;
 }
-#define  PULLUP_SD    do{ usleep(200*1000);system("echo 1 > /proc/rp_gpio/output_sd");} while(0)
-#define  PULLDOWN_SD    do{ system("echo 0 > /proc/rp_gpio/output_sd");} while(0)
+#define  PULLUP_SD    do{ \
+                        usleep(500*1000); \
+                        system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        printf("功放打开\n"); \
+                    } while(0)
+
+#define  PULLDOWN_SD    do{ \
+                        system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        printf("功放关闭\n"); \
+                    } while(0)
 
 static int a2dp_sink_stream_stop(void)
 {

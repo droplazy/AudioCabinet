@@ -17,7 +17,9 @@ typedef enum{
     FO_NOP = 0,
     FO_MATCH =1,
     FO_ENROLL =2,
-    FO_CLEAR  =3
+    FO_CLEAR  =3,
+    FO_MATCH_WAITING =4,
+    FO_CANCEL =5
 }FINGERT_OPTION;
 
 
@@ -31,6 +33,7 @@ public:
     bool HandShakeCheck();
     void AutoEnroll();
     void AutoIdentify();
+    void PS_Cancel();
     int GetFingerInputFile();
     void clearfinger();
 private:

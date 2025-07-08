@@ -247,6 +247,8 @@ void MainWindow::GetHotSearch()
 }
 
 
+#include <QElapsedTimer>
+
 bool MainWindow::writeToOutputLock(int value) {
     // 打开文件进行读取
     QFile file("/proc/rp_gpio/output_lock");
@@ -260,8 +262,12 @@ bool MainWindow::writeToOutputLock(int value) {
     qint64 bytesWritten = -1;
     QByteArray writtenData;
     
-    // 尝试最多5次写入
-    for (int attempt = 0; attempt < 3000; ++attempt) {
+    // 使用QElapsedTimer来测量时间
+    QElapsedTimer timer;
+    timer.start();
+    
+    // 尝试直到1.5秒或成功写入
+    while (timer.elapsed() < 1500) {  // 1.5秒内循环
         // 先读取文件内容
         file.seek(0);  // 移动文件指针到文件开头
         QByteArray currentData = file.readAll();
@@ -271,7 +277,7 @@ bool MainWindow::writeToOutputLock(int value) {
         file.seek(0);  // 移动文件指针到文件开头
         bytesWritten = file.write(newData);
         if (bytesWritten == -1) {
-            qDebug() << "写入失败，第" << attempt + 1 << "次尝试!";
+            qDebug() << "写入失败，等待重试...";
         } else {
             // 清空缓存并验证
             file.flush();
@@ -285,14 +291,17 @@ bool MainWindow::writeToOutputLock(int value) {
                 file.close();
                 return true;
             } else {
-                qDebug() << "写入失败，验证不一致，第" << attempt + 1 << "次尝试!";
+                qDebug() << "写入失败，验证不一致，继续尝试!";
             }
         }
+        
+        // 短暂的等待，以避免CPU占用过高
+        QThread::msleep(50);  // 暂停50毫秒
     }
 
-    // 超过最大重试次数，返回失败
+    // 超过1.5秒后退出循环，返回失败
     file.close();
-    qDebug() << "尝试5次写入后失败!";
+    qDebug() << "尝试1.5秒后失败!";
     return false;
 }
 
@@ -643,7 +652,9 @@ void MainWindow::displayAudioMeta()
         Playing_Album = total_info_audio.album;
 
         qDebug() << "Get picture" << Playing_Artist << "AND " << Playing_Album;
-        QString result = Playing_Artist + "+" + Playing_Album;
+        QString result = total_info_audio.title+Playing_Album;/*Playing_Artist + "+" + Playing_Album;*/
+
+        if(!result.isEmpty())
         GetAlbumPicture(result, "1", "10");
     }
 

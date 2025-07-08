@@ -86,8 +86,8 @@ void Key_event::run()
                 volume_scale = abs(volume_scale);
                 volume_scale += 1;
                 // 限制 volume_scale 在 0 到 10 之间
-                if (volume_scale > 10) {
-                    volume_scale = 10;
+                if (volume_scale > 20) {
+                    volume_scale = 20;
                 }
                 qDebug() << blue_addr << "volume : " << volume_scale << "addPressTimer.elapsed() " << addPressTimer.elapsed() << "/proc/rp_gpio/input_volume_add";
                 addPressTimer.restart();  // 重置时间，继续检测

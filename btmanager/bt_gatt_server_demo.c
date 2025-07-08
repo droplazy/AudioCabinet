@@ -40,7 +40,7 @@
 #define TEST_BLE_RATE  0
 
 static uint16_t service_handle;
-char device_name[28] = "aw-ble-test-007";
+char device_name[28] = "zw-configure";
 int GetMsgFlag = 0;
 char sendmessage[256]={0} ;
 gatts_char_write_req_t global_gattMsg_recive;

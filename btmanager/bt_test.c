@@ -34,8 +34,17 @@
 #define COLOR_BLUE "\x1B[0;34m"
 
 #define CMD_ARGS_MAX 20
-#define  PULLUP_SD    do{ usleep(500*1000);system("echo 1 > /proc/rp_gpio/output_sd");} while(0)
-#define  PULLDOWN_SD    do{ system("echo 0 > /proc/rp_gpio/output_sd");} while(0)
+
+#define  PULLUP_SD    do{ \
+                        usleep(500*1000); \
+                        system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        printf("功放打开\n"); \
+                    } while(0)
+
+#define  PULLDOWN_SD    do{ \
+                        system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        printf("功放关闭\n"); \
+                    } while(0)
 
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(*(a)))
 static int song_playing_pos = 0;
@@ -320,6 +329,7 @@ static void bt_test_avrcp_play_position_cb(const char *bd_addr, int song_len, in
 {
     if (song_playing_pos > song_pos && song_playing_len != song_len) {
         BTMG_INFO("AVRCP playing song switched");
+        PULLUP_SD;
     }
     song_playing_len = song_len;
     song_playing_pos = song_pos;
