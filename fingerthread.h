@@ -36,11 +36,14 @@ public:
     void PS_Cancel();
     int GetFingerInputFile();
     void clearfinger();
+public slots:
+    void update_fingerkey(bool status);
 private:
     int ttyFD;
     QFile Input_file();
     FINGERT_OPTION Fig_Opt =FO_NOP;
     QDateTime locktime;
+    bool finger_key =false;
 signals:
     void upanddownlock();
 };

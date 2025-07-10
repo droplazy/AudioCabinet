@@ -9,9 +9,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-
-
-class gattthread:public QThread
+class gattthread : public QThread
 {
     Q_OBJECT
 public:
@@ -25,7 +23,6 @@ signals:
     void wificonfigureupdate();
     void enrollFinger();
     void deviceFormat();
-
 };
 
 #endif // GATTTHREAD_H

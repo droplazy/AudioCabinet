@@ -30,11 +30,9 @@
 #define NETCHECK_COUNT_FALSE 1000
 #define NETCHECK_COUNT_TRUE (60 * 1000)
 
-
-
-#define UIFLUSH_COUNT 60*1000*5
-#define  PULLUP_ELCLOCK    writeToOutputLock(1);//do{ my_system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
-#define  PULLDOWN_ELCLOCK  writeToOutputLock(0);  //do{ my_system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
+#define UIFLUSH_COUNT 60 * 1000 * 5
+#define PULLUP_ELCLOCK writeToOutputLock(0);   // do{ my_system("echo 1 > /proc/rp_gpio/output_lock");} while(0)
+#define PULLDOWN_ELCLOCK writeToOutputLock(1); // do{ my_system("echo 0 > /proc/rp_gpio/output_lock");} while(0)
 
 int readOutputSD()
 {
@@ -152,14 +150,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     p_thread = new main_thread();
     p_finger = new FingerThread();
     p_keyevent = new Key_event();
-    p_gatt =new gattthread();
+    p_gatt = new gattthread();
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
     // connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
-    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection); //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
-    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);       //
-    connect(p_gatt, SIGNAL(wificonfigureupdate()), this, SLOT(getwificonfigure()), Qt::AutoConnection);       //
-    connect(p_gatt, SIGNAL(enrollFinger()), this, SLOT(EnrollFinger()), Qt::AutoConnection);       //
-    connect(p_gatt, SIGNAL(deviceFormat()), this, SLOT(ClearFinger()), Qt::AutoConnection);       //
+    connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);           //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
+    connect(p_finger, SIGNAL(upanddownlock()), this, SLOT(ElcLockOption()), Qt::AutoConnection);                 //
+    connect(p_gatt, SIGNAL(wificonfigureupdate()), this, SLOT(getwificonfigure()), Qt::AutoConnection);          //
+    connect(p_gatt, SIGNAL(enrollFinger()), this, SLOT(EnrollFinger()), Qt::AutoConnection);                     //
+    connect(p_gatt, SIGNAL(deviceFormat()), this, SLOT(ClearFinger()), Qt::AutoConnection);                      //
+    connect(p_keyevent, SIGNAL(fingerKeysig(bool)), p_finger, SLOT(update_fingerkey(bool)), Qt::AutoConnection); //
 
     p_keyevent->start();
     p_finger->start();
@@ -187,7 +186,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #if 1
 
     // setPlayProgress(0);
-   // QTimer *timer_1 = new QTimer();
+    // QTimer *timer_1 = new QTimer();
     connect(timer_1, &QTimer::timeout, this, &MainWindow::displaySpectrum);
     timer_1->start(10); // 每20ms更新一次（可根据需要调整旋转速度）
 
@@ -196,18 +195,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #endif
 
     checkNetworkStatus();
-  //  QTimer *timer_2 = new QTimer();
+    //  QTimer *timer_2 = new QTimer();
     connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
     timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
 
-
-  //  QTimer *timer_3 = new QTimer();
-    connect(timer_3, &QTimer::timeout, this, [this]() {
+    //  QTimer *timer_3 = new QTimer();
+    connect(timer_3, &QTimer::timeout, this, [this]()
+            {
         qDebug() << "flush UI reupdate;";
-        flushOK = false;
-    });
-    timer_3->start(60*1000*5);
-
+        flushOK = false; });
+    timer_3->start(60 * 1000 * 5);
 }
 int MainWindow::getNetCheckCount()
 {
@@ -246,63 +243,72 @@ void MainWindow::GetHotSearch()
     p_http->sendGetRequest(url);
 }
 
-
 #include <QElapsedTimer>
 
-bool MainWindow::writeToOutputLock(int value) {
+bool MainWindow::writeToOutputLock(int value)
+{
     // 打开文件进行读取
     QFile file("/proc/rp_gpio/output_lock");
-    if (!file.open(QIODevice::ReadWrite)) {
+    if (!file.open(QIODevice::ReadWrite))
+    {
         qDebug() << "无法打开文件!";
         return false;
     }
 
     // 将新的值转化为字节并写入文件
-    QByteArray newData = QByteArray::number(value) + '\n';  // 需要添加换行符以匹配文件格式
+    QByteArray newData = QByteArray::number(value) + '\n'; // 需要添加换行符以匹配文件格式
     qint64 bytesWritten = -1;
     QByteArray writtenData;
-    
+
     // 使用QElapsedTimer来测量时间
     QElapsedTimer timer;
     timer.start();
-    
+
     // 尝试直到1.5秒或成功写入
-    while (timer.elapsed() < 1500) {  // 1.5秒内循环
+    while (timer.elapsed() < 1500)
+    { // 1.5秒内循环
         // 先读取文件内容
-        file.seek(0);  // 移动文件指针到文件开头
+        file.seek(0); // 移动文件指针到文件开头
         QByteArray currentData = file.readAll();
         qDebug() << "当前文件内容: " << currentData;
-        
+
         // 写入新的值
-        file.seek(0);  // 移动文件指针到文件开头
+        file.seek(0); // 移动文件指针到文件开头
         bytesWritten = file.write(newData);
-        if (bytesWritten == -1) {
+        if (bytesWritten == -1)
+        {
             qDebug() << "写入失败，等待重试...";
-        } else {
+        }
+        else
+        {
             // 清空缓存并验证
             file.flush();
-            file.seek(0);  // 移动文件指针到文件开头
+            file.seek(0); // 移动文件指针到文件开头
             writtenData = file.readAll();
             qDebug() << "写入后的文件内容: " << writtenData;
 
             // 校验写入的内容是否正确
-            if (writtenData.trimmed() == newData.trimmed()) {
+            if (writtenData.trimmed() == newData.trimmed())
+            {
                 qDebug() << "写入成功!";
                 file.close();
                 return true;
-            } else {
+            }
+            else
+            {
                 qDebug() << "写入失败，验证不一致，继续尝试!";
             }
         }
-        
+
         // 短暂的等待，以避免CPU占用过高
-        QThread::msleep(50);  // 暂停50毫秒
+        QThread::msleep(50); // 暂停50毫秒
     }
 
     // 超过1.5秒后退出循环，返回失败
     file.close();
     qDebug() << "尝试1.5秒后失败!";
     return false;
+    // #end if
 }
 
 void MainWindow::GetDeviceIP()
@@ -358,7 +364,6 @@ void MainWindow::initSepctrum()
         }
     }
 }
-
 
 void MainWindow::GetWeatherOnIp()
 {
@@ -585,10 +590,10 @@ void MainWindow::displayAudioMeta()
         Playing_Album = total_info_audio.album;
 
         qDebug() << "Get picture" << Playing_Artist << "AND " << Playing_Album;
-        QString result = total_info_audio.title+Playing_Album;/*Playing_Artist + "+" + Playing_Album;*/
+        QString result = total_info_audio.title + Playing_Album; /*Playing_Artist + "+" + Playing_Album;*/
 
-        if(!result.isEmpty())
-        GetAlbumPicture(result, "1", "10");
+        if (!result.isEmpty())
+            GetAlbumPicture(result, "1", "10");
     }
 
     ui->label_artist->setText(total_info_audio.artist);
@@ -789,11 +794,11 @@ void MainWindow::CreatSpectrum()
         labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1)); // 显式设置 objectName
         labels_top[i]->move(x + label_position * (25 + spacing), 480);       // 设置 QLabel 的位置
         labels_top[i]->setPixmap(pixmap);
-       // labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red; background-color: blue;");
-        labels_top[i]->raise();                                                          // 将 labels_top 放在最上层
+        // labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red; background-color: blue;");
+        labels_top[i]->raise();        // 将 labels_top 放在最上层
         labels_top[i]->resize(25, 90); // 调整标签大小为27x145
-       // labels_top[i]->setText(QString::number(i + 1));
-         qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
+                                       // labels_top[i]->setText(QString::number(i + 1));
+        qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
 
     // 创建进度条标签
@@ -836,9 +841,9 @@ int MainWindow::GetGpioStatus(QString GPIO_fILE)
 }
 void MainWindow::ElcLockOption()
 {
-    PULLUP_ELCLOCK;
+    //   PULLUP_ELCLOCK;
 
-
+    p_keyevent->SetGPIO("/proc/rp_gpio/output_lock", 0);
     QTimer::singleShot(1000, this, &MainWindow::SaveRealsedLock);
 
     qDebug() << "TIME START !!!!!!!!!!";
@@ -846,10 +851,11 @@ void MainWindow::ElcLockOption()
 void MainWindow::SaveRealsedLock()
 {
     qDebug() << "Timeout triggered!";
+    p_keyevent->SetGPIO("/proc/rp_gpio/output_lock", 1);
 
-    PULLDOWN_ELCLOCK;
+    //   PULLDOWN_ELCLOCK;
 
-    qDebug() << "lOCK REALSED! " << GetGpioStatus("/proc/rp_gpio/output_lock");
+    //   qDebug() << "lOCK REALSED! " << GetGpioStatus("/proc/rp_gpio/output_lock");
 }
 void MainWindow::setPlayProgress(int current)
 {
@@ -962,14 +968,14 @@ void MainWindow::DebugChache()
 
 void MainWindow::flushNetUI()
 {
-    if(flushOK == true)
-    return ;
+    if (flushOK == true)
+        return;
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
     GetDeviceIP();
     GetHotSearch();
     GetDateToday();
     GetWeatherToday();
-    flushOK= true;
+    flushOK = true;
     // GetOnewords();
 }
 
@@ -982,26 +988,30 @@ void MainWindow::checkNetworkStatus()
     process.waitForFinished();                                              // 等待 ping 命令完成
 
     QString output = process.readAllStandardOutput(); // 获取 ping 命令的输出
-  //  qDebug() << "Ping output:" << output;
+                                                      //  qDebug() << "Ping output:" << output;
 
-    qint64 elapsed = timer.elapsed();                                     // 获取从启动到现在的时间（毫秒）
-  //  qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
+    qint64 elapsed = timer.elapsed(); // 获取从启动到现在的时间（毫秒）
+                                      //  qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
 
     // 修改后的判断逻辑，确保字符串完全匹配
     if (output.contains("1 packets transmitted, 1 packets received"))
     {
-      //  qDebug() << "Device is connected to the network.";
+        //  qDebug() << "Device is connected to the network.";
         network = true;
 
-        if (timer_2->isActive()) {
+        if (timer_2->isActive())
+        {
             timer_2->stop(); // 确保定时器停止
         }
 
         int interval = getNetCheckCount(); // 获取定时器间隔
-        if (interval > 0) {
+        if (interval > 0)
+        {
             qDebug() << "Timer interval: " << interval;
             timer_2->start(interval); // 使用新的间隔启动定时器
-        } else {
+        }
+        else
+        {
             qDebug() << "Invalid interval value: " << interval;
         }
 
@@ -1009,29 +1019,33 @@ void MainWindow::checkNetworkStatus()
     }
     else
     {
-        if(network)
+        if (network)
         {
             network = false;
 
-             qDebug() << "network from true to false ";
-             if (timer_2->isActive()) {
-                 timer_2->stop(); // 确保定时器停止
-             }
+            qDebug() << "network from true to false ";
+            if (timer_2->isActive())
+            {
+                timer_2->stop(); // 确保定时器停止
+            }
 
-             int interval = getNetCheckCount(); // 获取定时器间隔
-             if (interval > 0) {
-                 qDebug() << "Timer interval: " << interval;
-                 timer_2->start(interval); // 使用新的间隔启动定时器
-             } else {
-                 qDebug() << "Invalid interval value: " << interval;
-             }
+            int interval = getNetCheckCount(); // 获取定时器间隔
+            if (interval > 0)
+            {
+                qDebug() << "Timer interval: " << interval;
+                timer_2->start(interval); // 使用新的间隔启动定时器
+            }
+            else
+            {
+                qDebug() << "Invalid interval value: " << interval;
+            }
         }
-   //     qDebug() << "Device is not connected to the network.";
+        //     qDebug() << "Device is not connected to the network.";
     }
 }
 void MainWindow::getwificonfigure()
 {
-    flushOK =false;
+    flushOK = false;
     checkNetworkStatus();
 }
 void MainWindow::EnrollFinger()
@@ -1153,7 +1167,7 @@ void MainWindow::displaySpectrum()
     double original_max = 99999999; // 原始数据的最大值
 
     // Use a for loop to find the maximum and minimum values in the spectrum data
-    for (int i = 0; i < 30; ++i)  // Reduced from 60 to 30 labels
+    for (int i = 0; i < 30; ++i) // Reduced from 60 to 30 labels
     {
         if (p_thread->spectrumMeta[i] > original_max)
         {
@@ -1165,7 +1179,7 @@ void MainWindow::displaySpectrum()
         }
     }
 
-    double newHeight[30] = {0};  // Reduced from 60 to 30 labels
+    double newHeight[30] = {0}; // Reduced from 60 to 30 labels
     for (size_t i = 0; i < 30; i++)
     {
         newHeight[i] = (int)(1 + ((p_thread->spectrumMeta[i] - original_min) / (original_max - original_min)) * (92 - 1));
@@ -1175,10 +1189,10 @@ void MainWindow::displaySpectrum()
             newHeight[i] = 92;
     }
 
-    smoothData(newHeight, 30, 0.95);  // Adjust smooth data for 30 labels
+    smoothData(newHeight, 30, 0.95); // Adjust smooth data for 30 labels
 
     // Update each label's position and height
-    for (int i = 0; i < 30; ++i)  // Reduced from 60 to 30 labels
+    for (int i = 0; i < 30; ++i) // Reduced from 60 to 30 labels
     {
         if (labels_top[i])
         { // If the label exists
@@ -1190,7 +1204,7 @@ void MainWindow::displaySpectrum()
             // Make sure the label is within bounds and adjust the position if necessary
             if (labels_top[i]->pos().y() <= currentPos.y())
             {
-                currentPos.setY(labels_top[i]->pos().y() - 3);  // Adjust Y position
+                currentPos.setY(labels_top[i]->pos().y() - 3); // Adjust Y position
             }
         }
         else

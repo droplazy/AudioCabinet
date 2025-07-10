@@ -48,7 +48,13 @@
 /* Used with WAV_FMT_EXTENSIBLE format */
 #define WAV_GUID_TAG		"\x00\x00\x00\x00\x10\x00\x80\x00\x00\xAA\x00\x38\x9B\x71"
 
+#define PULLUP_SD    do { \
+                        sd_status =1;\
+                    } while(0)
 
+#define PULLDOWN_SD  do { \
+                        sd_status =0;\
+                    } while(0)
 
 /* it's in chunks like .voc and AMIGA iff, but my source say there
    are in only in this combination, so I combined them in one header;
@@ -109,7 +115,7 @@ extern btmg_avrcp_play_state_t get_state;
 extern int trackUpdate;
 extern int switchFlag;
 extern char blue_addr[];
-
+extern int sd_status ;
 extern int GetMsgFlag ;
 extern char sendmessage[256];
 extern gatts_char_write_req_t global_gattMsg_recive;

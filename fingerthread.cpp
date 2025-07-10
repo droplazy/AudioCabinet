@@ -13,6 +13,7 @@ FingerThread::FingerThread()
     {
         qDebug(" Open comport successly [%d] !", ttyFD);
     }
+    
 }
 
 void FingerThread::run()
@@ -20,7 +21,7 @@ void FingerThread::run()
 
     int ret = 0;
     unsigned char message[128] = {0};
-    HandShakeCheck();
+  //  HandShakeCheck();
     int overtime=0;
     //     sleep(1);
     //     AutoEnroll();
@@ -29,17 +30,17 @@ void FingerThread::run()
     {
         // if()
 
-        ret = GetFingerInputFile();
+       // ret = GetFingerInputFile();
         //  qDebug() << "FINGER INPUT : " <<ret <<"FINGER TYPe : " << Fig_Opt;
-        if (GetFingerInputFile() && Fig_Opt != FO_ENROLL && Fig_Opt !=FO_MATCH_WAITING)
+        if (finger_key && Fig_Opt != FO_ENROLL && Fig_Opt !=FO_MATCH_WAITING)
         { //&& Fig_Opt== FO_MATCH
-            usleep(300 * 1000);
-            if (GetFingerInputFile())
-            {
+            // usleep(300 * 1000);
+            // if (GetFingerInputFile())
+            // {
                 qDebug() << "检测到指纹按下";
                 AutoIdentify();
                 Fig_Opt = FO_MATCH;
-            }
+          //  }
         }
         //   usleep(100*1000);
 #if 1
@@ -196,7 +197,10 @@ void FingerThread::run()
 #endif
     }
 }
-
+ void FingerThread::update_fingerkey(bool status)
+ {
+    finger_key = status;
+ }
 bool FingerThread::HandShakeCheck()
 {
     unsigned char message[128] = {0};

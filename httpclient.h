@@ -20,6 +20,7 @@ private slots:
     void onFinished(QNetworkReply *reply);
 signals:
     void HttpResult(S_HTTP_RESPONE);
+
 private:
     QNetworkAccessManager *networkManager;
     S_HTTP_RESPONE *p_test = nullptr;

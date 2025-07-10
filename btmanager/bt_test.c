@@ -35,16 +35,10 @@
 
 #define CMD_ARGS_MAX 20
 
-#define  PULLUP_SD    do{ \
-                        usleep(500*1000); \
-                        system("echo 1 > /proc/rp_gpio/output_sd"); \
-                        printf("功放打开\n"); \
-                    } while(0)
+int sd_status =0;;
 
-#define  PULLDOWN_SD    do{ \
-                        system("echo 0 > /proc/rp_gpio/output_sd"); \
-                        printf("功放关闭\n"); \
-                    } while(0)
+
+
 
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(*(a)))
 static int song_playing_pos = 0;
@@ -66,6 +60,91 @@ btmg_avrcp_play_state_t get_state   = BTMG_AVRCP_PLAYSTATE_STOPPED;
 int switchFlag =0;
 int trackUpdate =0;
 char blue_addr[72]={0};
+
+
+
+#define FILE_PATH "/proc/rp_gpio/output_lock"
+#define TIMEOUT 1500 // 超过1.5秒后失败
+#define RETRY_DELAY 50000 // 50毫秒的延时，单位微秒
+
+// 写入文件的函数
+int writeToOutputLock(int value) {
+    // 打开文件进行读取和写入
+    int fd = open(FILE_PATH, O_RDWR);
+    if (fd == -1) {
+        perror("无法打开文件");
+        return 0;  // 失败
+    }
+
+    char newData[64];
+    snprintf(newData, sizeof(newData), "%d\n", value);  // 格式化写入的数据
+    
+    // 记录开始时间
+    struct timeval start, current;
+    gettimeofday(&start, NULL);
+
+    while (1) {
+        // 获取当前时间
+        gettimeofday(&current, NULL);
+        long elapsed = (current.tv_sec - start.tv_sec) * 1000 + (current.tv_usec - start.tv_usec) / 1000;
+
+        // 如果超过1.5秒，则退出
+        if (elapsed >= TIMEOUT) {
+            printf("尝试1.5秒后失败!\n");
+            close(fd);
+            return 0;  // 失败
+        }
+
+        // 先读取文件内容
+        lseek(fd, 0, SEEK_SET);  // 移动文件指针到文件开头
+        char currentData[256];
+        ssize_t bytesRead = read(fd, currentData, sizeof(currentData) - 1);
+        if (bytesRead < 0) {
+            perror("读取文件失败");
+            close(fd);
+            return 0;
+        }
+        currentData[bytesRead] = '\0';  // 确保数据以 null 结尾
+        printf("当前文件内容: %s\n", currentData);
+
+        // 写入新的数据
+        lseek(fd, 0, SEEK_SET);  // 移动文件指针到文件开头
+        ssize_t bytesWritten = write(fd, newData, strlen(newData));
+        if (bytesWritten == -1) {
+            perror("写入失败，等待重试...");
+        } else {
+            // 刷新文件并验证
+            fsync(fd);
+            lseek(fd, 0, SEEK_SET);  // 移动文件指针到文件开头
+            bytesRead = read(fd, currentData, sizeof(currentData) - 1);
+            if (bytesRead < 0) {
+                perror("读取文件失败");
+                close(fd);
+                return 0;
+            }
+            currentData[bytesRead] = '\0';  // 确保数据以 null 结尾
+            printf("写入后的文件内容: %s\n", currentData);
+
+            // 校验写入的内容是否正确
+            if (strncmp(currentData, newData, strlen(newData)) == 0) {
+                printf("写入成功!\n");
+                close(fd);
+                return 1;  // 成功
+            } else {
+                printf("写入失败，验证不一致，继续尝试!\n");
+            }
+        }
+
+        // 短暂的等待，避免CPU占用过高
+        usleep(RETRY_DELAY);  // 暂停50毫秒
+    }
+
+    // 如果退出循环，说明失败
+    close(fd);
+    return 0;  // 失败
+}
+
+
 static void bt_test_adapter_status_cb(btmg_adapter_state_t status)
 {
     char bt_addr[18] = { 0 };

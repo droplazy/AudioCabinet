@@ -13,10 +13,7 @@
 #include <cmath>
 #include <vector>
 
-
-
-
-class main_thread :public QThread
+class main_thread : public QThread
 {
     Q_OBJECT
 public:
@@ -25,11 +22,11 @@ public:
     bool isConnected();
     int GetGpioStatus(QString GPIO_fILE);
     void SpectrumMetaData();
-    void calculatePowerSpectrum(const char* pcmData, int sampleRate, int N);
+    void calculatePowerSpectrum(const char *pcmData, int sampleRate, int N);
 
-    double spectrumMeta[60]={0};
+    double spectrumMeta[60] = {0};
     void recheckNetwork();
-        bool isNetOk = false;
+    bool isNetOk = false;
 
 public slots:
     void checkNetworkStatus();
@@ -40,7 +37,7 @@ signals:
     void DebugSignal();
 
 private:
-   //  QNetworkConfigurationManager *manager;
+    //  QNetworkConfigurationManager *manager;
 };
 
 #endif // MAIN_THREAD_H

@@ -33,12 +33,32 @@
 #include "dbus-client.h"
 #include "defs.h"
 #include "ffb.h"
-
+#include "../bt_test.h"
 #define CACHE_TIMEOUT 500*2
 #define A2DP_SINK_COMSUMER_DATA_LEN 1920*2
 static bool a2dp_stream_enable = false;
 static pthread_mutex_t a2dp_sink_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/*
+#define PULLUP_SD    do { \
+                        usleep(500 * 1000); \
+                        int ret = system("echo 1 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放打开\n"); \
+                        } else { \
+                            printf("功放打开失败，写入失败\n"); \
+                        } \
+                    } while(0)
+
+#define PULLDOWN_SD  do { \
+                        int ret = system("echo 0 > /proc/rp_gpio/output_sd"); \
+                        if (ret == 0) { \
+                            printf("功放关闭\n"); \
+                        } else { \
+                            printf("功放关闭失败，写入失败\n"); \
+                        } \
+                    } while(0)
+*/
 char *pcm_data[2048] ={0};
 int volume_scale =20;
 int pcm_lenth =0;
@@ -476,27 +496,10 @@ static int a2dp_sink_stream_start(uint8_t channels, uint32_t sampling)
 
     return BT_OK;
 }
-#define PULLUP_SD    do { \
-                        usleep(500 * 1000); \
-                        int ret = system("echo 1 > /proc/rp_gpio/output_sd"); \
-                        if (ret == 0) { \
-                            printf("功放打开\n"); \
-                        } else { \
-                            printf("功放打开失败，写入失败\n"); \
-                        } \
-                    } while(0)
 
-#define PULLDOWN_SD  do { \
-                        int ret = system("echo 0 > /proc/rp_gpio/output_sd"); \
-                        if (ret == 0) { \
-                            printf("功放关闭\n"); \
-                        } else { \
-                            printf("功放关闭失败，写入失败\n"); \
-                        } \
-                    } while(0)
 static int a2dp_sink_stream_stop(void)
 {
-PULLDOWN_SD;
+    PULLDOWN_SD;
     if (a2dp_stream_enable == false) {
         BTMG_INFO("already false.");
         return BT_OK;
