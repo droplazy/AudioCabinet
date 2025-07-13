@@ -180,7 +180,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     label_aumblePic->setObjectName(QString("label_aumblePic")); // 显式设置 objectName
     label_aumblePic->move(458, 121);                            // 设置 QLabel 的位置
     label_aumblePic->resize(214, 214);
-    label_aumblePic->setStyleSheet("background-color: green;");
+    //label_aumblePic->setStyleSheet("background-color: green;");
 
 #endif
 #if 1
@@ -205,6 +205,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         qDebug() << "flush UI reupdate;";
         flushOK = false; });
     timer_3->start(60 * 1000 * 5);
+
+    connect(timer_5, &QTimer::timeout, this, &MainWindow::RefreshHotSearch);//热搜五秒更新一次
+    timer_5->start(1000 * 5);
 }
 int MainWindow::getNetCheckCount()
 {
@@ -798,7 +801,7 @@ void MainWindow::CreatSpectrum()
         labels_top[i]->raise();        // 将 labels_top 放在最上层
         labels_top[i]->resize(25, 90); // 调整标签大小为27x145
                                        // labels_top[i]->setText(QString::number(i + 1));
-        qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
+       // qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
 
     // 创建进度条标签
@@ -978,6 +981,27 @@ void MainWindow::flushNetUI()
     flushOK = true;
     // GetOnewords();
 }
+void MainWindow::RefreshHotSearch()
+{
+    static int X= 0;
+    if (hotsearch_Titles.size() < 1)
+    {
+       qDebug() <<"没有热搜可以显示";
+       return ;
+    }
+    
+    // 确保 X 不越界，若超过最大索引，则从 0 开始
+    if (X >= hotsearch_Titles.size()) {
+        X = 0;
+    }
+
+    // 更新 label 显示的内容
+    ui->label_HotSearch->setText(hotsearch_Titles.at(X));
+
+    // 每次调用后 X + 1
+    X++;
+}
+
 
 void MainWindow::checkNetworkStatus()
 {
@@ -1314,7 +1338,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
     if (doc.isObject())
     {
         QJsonObject obj = doc.object();
-        QStringList titles;
+       // QStringList titles;
 
         // Check if "data" exists and is an array
         if (obj.contains("data") && obj["data"].isArray())
@@ -1327,15 +1351,15 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
             {
                 QJsonObject item = value.toObject();
                 QString title = item["query"].toString();
-                titles.append(title);
+                hotsearch_Titles.append(title);
             }
 
             // Output the titles for debugging purposes
-            qDebug() << titles;
+            qDebug() << hotsearch_Titles;
 
-            if (!titles.isEmpty())
+            if (!hotsearch_Titles.isEmpty())
             {
-                ui->label_HotSearch->setText(titles.at(0));
+                ui->label_HotSearch->setText(hotsearch_Titles.at(0));
             }
         }
         else

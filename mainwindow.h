@@ -58,6 +58,7 @@ public:
     int getNetCheckCount();
 public slots:
     void EnrollFinger();
+    void RefreshHotSearch();
     void checkNetworkStatus();
     void getwificonfigure();
     void displayAudioMeta();
@@ -87,6 +88,7 @@ private:
     QString Playing_Album = "ZWDZ_NONE";
     QString localPlace;
     QString DeviceIP;
+    QStringList hotsearch_Titles;
     bool badKeywords = false;
     RotatingRoundLabel *label_around;
     int picSearchCnt = 0;
@@ -108,6 +110,7 @@ private:
     QTimer *timer_1 = new QTimer();
     QTimer *timer_2 = new QTimer();
     QTimer *timer_3 = new QTimer();
+    QTimer *timer_5 = new QTimer();
     bool key_finger_status = false;
     //    QTimer *timer_4 = new QTimer();
 };
