@@ -196,12 +196,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #endif
 
     checkNetworkStatus();
-    //  QTimer *timer_2 = new QTimer();
-    //    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
-    //    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
-    connect(timer_2, &QTimer::timeout, this, &MainWindow::flushNetUI);
-    timer_2->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
-    //  QTimer *timer_3 = new QTimer();
+    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
+    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
+    // connect(timer_2, &QTimer::timeout, this, &MainWindow::flushNetUI);
+    // timer_2->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
+
     connect(timer_3, &QTimer::timeout, this, [this]()
             {
         qDebug() << "flush UI reupdate;";
@@ -926,8 +925,7 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
         return;
     }
 
-    //  errorcnt = 0;
-    //  return ;
+
     if (s_back.Title == ONE_WORD)
     {
         DisposeOneWord(s_back);
@@ -960,7 +958,6 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
     }
     else if (s_back.Title == WEATHERTODAY)
     {
-        //  DisposeDate(s_back);
         disposeWeathertoday(s_back);
     }
     else
@@ -981,14 +978,14 @@ void MainWindow::DebugChache()
 
 void MainWindow::flushNetUI()
 {
-     if (flushOK == true)
-        return;
+    //  if (flushOK == true)
+    //     return;
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
     GetDeviceIP();
-    GetHotSearch();
+    GetHotSearch();//todo
     GetDateToday();
     GetWeatherToday();
-     flushOK = true;
+   //  flushOK = true;
     // GetOnewords();
 }
 void MainWindow::RefreshHotSearch()
