@@ -53,10 +53,10 @@ public:
     void CreatSpectrum();
     void smoothData(double spectrumMeta[], int length, double smoothingFactor);
     bool writeToOutputLock(int value);
-    void flushNetUI();
 
     int getNetCheckCount();
 public slots:
+    void flushNetUI();
     void EnrollFinger();
     void RefreshHotSearch();
     void checkNetworkStatus();
@@ -111,6 +111,7 @@ private:
     QTimer *timer_2 = new QTimer();
     QTimer *timer_3 = new QTimer();
     QTimer *timer_5 = new QTimer();
+    QTimer *timer_6 =  new QTimer();
     bool key_finger_status = false;
     //    QTimer *timer_4 = new QTimer();
 };

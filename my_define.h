@@ -86,13 +86,13 @@ struct S_HTTP_RESPONE {
     QString url;
     QByteArray bytes;
     QString Error;
-    void print() const {
+    /*void print() const {
         //qDebug() << "Title:" << Title;
         qDebug() << "success:" << success;
         qDebug() << "Message:" << Message;
         qDebug() << "url:" << url;
         qDebug() << "Error:" << Error;
 
-    }
+    }*/
 };
 #endif // MY_DEFINE_H

@@ -143,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->setupUi(this);
 
     qDebug() << "****************************************************************";
-    // sleep(3);
+    // sleep(3);.
     wifiLaunch();
 
     p_http = new HttpClient();
@@ -170,6 +170,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     QImage *img_1 = new QImage;                       // 新建一个image对象
     img_1->load(":/ui/around.png");                   // 将图像资源载入对象img，注意路径
     QPixmap pixmap = QPixmap::fromImage(*img_1);
+    delete img_1;
     label_around->move(530, 90); // 设置标签位置
 
     label_around->loadImage(pixmap); // 设置标签的图片
@@ -180,7 +181,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     label_aumblePic->setObjectName(QString("label_aumblePic")); // 显式设置 objectName
     label_aumblePic->move(458, 121);                            // 设置 QLabel 的位置
     label_aumblePic->resize(214, 214);
-    //label_aumblePic->setStyleSheet("background-color: green;");
+    // label_aumblePic->setStyleSheet("background-color: green;");
 
 #endif
 #if 1
@@ -196,9 +197,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     checkNetworkStatus();
     //  QTimer *timer_2 = new QTimer();
-    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
-    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
-
+    //    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
+    //    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
+    connect(timer_2, &QTimer::timeout, this, &MainWindow::flushNetUI);
+    timer_2->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
     //  QTimer *timer_3 = new QTimer();
     connect(timer_3, &QTimer::timeout, this, [this]()
             {
@@ -206,8 +208,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         flushOK = false; });
     timer_3->start(60 * 1000 * 5);
 
-    connect(timer_5, &QTimer::timeout, this, &MainWindow::RefreshHotSearch);//热搜五秒更新一次
+    connect(timer_5, &QTimer::timeout, this, &MainWindow::RefreshHotSearch); // 热搜五秒更新一次
     timer_5->start(1000 * 5);
+    /*connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplayTime);
+        timer_6->start(5*1000); // 每20ms更新一次（可根据需要调整旋转速度）*/
 }
 int MainWindow::getNetCheckCount()
 {
@@ -413,7 +417,7 @@ void MainWindow::disposeIP(S_HTTP_RESPONE s_back)
         DeviceIP = ip;
         // ui->label_IP->setText(DeviceIP);
         GetWeatherOnIp();
-        GetWeatherToday();
+        //   GetWeatherToday();
     }
     else
     {
@@ -559,6 +563,7 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
         QPixmap pixmap = QPixmap::fromImage(*img).scaled(31, 31, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         ui->label_Weather_today->setPixmap(pixmap); // 使用调整大小后的pixmap
 
+        delete img;
         // 更新天气信息的显示方式
         /*ui->label_Weather_future->clear();
         ui->label_Weather_future->setText(QString(" %1°")
@@ -775,7 +780,7 @@ void MainWindow::CreatSpectrum()
     img_1->load(":/ui/spectrum.png"); // 将图像资源载入对象img，注意路径
     // 将图片大小调整为适应 27*145 的尺寸
     QPixmap pixmap = QPixmap::fromImage(*img_1).scaled(25, 90, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
+    delete img_1;
     // 计算标签的位置：从中间开始依次向两边散开
     for (int i = 0; i < total_labels; i++)
     {
@@ -801,7 +806,7 @@ void MainWindow::CreatSpectrum()
         labels_top[i]->raise();        // 将 labels_top 放在最上层
         labels_top[i]->resize(25, 90); // 调整标签大小为27x145
                                        // labels_top[i]->setText(QString::number(i + 1));
-       // qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
+                                       // qDebug() << i << labels_top[i]->objectName() << "X:" << labels_top[i]->pos().x();
     }
 
     // 创建进度条标签
@@ -896,8 +901,10 @@ HISTORY_TODAY,
 WEATHER_IP*/
 void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
 {
+
     qDebug() << "HTTP OPERATION:" << s_back.Title;
-    static int errorcnt = 0;
+    //  return ;
+    // static int errorcnt = 0;
 
     if (s_back.Error.contains("not found") && s_back.success == false)
     {
@@ -908,16 +915,19 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
         qDebug() << "######################## DEBUG BRAEK POINT ########################";
         qDebug() << "######################## DEBUG BRAEK POINT ########################";
 
-        if (errorcnt++ >= 3)
-        {
-            p_thread->isNetOk = false;
-        }
+        /*  if (errorcnt++ >= 3)
+          {
+                 GetDeviceIP();
+      GetHotSearch();
+      GetDateToday();
+      GetWeatherToday();
+          }*/
 
         return;
     }
 
-    errorcnt = 0;
-
+    //  errorcnt = 0;
+    //  return ;
     if (s_back.Title == ONE_WORD)
     {
         DisposeOneWord(s_back);
@@ -950,7 +960,7 @@ void MainWindow::DisposeHttpResult(S_HTTP_RESPONE s_back)
     }
     else if (s_back.Title == WEATHERTODAY)
     {
-        // DisposeDate(s_back);
+        //  DisposeDate(s_back);
         disposeWeathertoday(s_back);
     }
     else
@@ -971,27 +981,29 @@ void MainWindow::DebugChache()
 
 void MainWindow::flushNetUI()
 {
-    if (flushOK == true)
+     if (flushOK == true)
         return;
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
     GetDeviceIP();
     GetHotSearch();
     GetDateToday();
     GetWeatherToday();
-    flushOK = true;
+     flushOK = true;
     // GetOnewords();
 }
 void MainWindow::RefreshHotSearch()
 {
-    static int X= 0;
+    static int X = 0;
+    updateDisplayTime();
     if (hotsearch_Titles.size() < 1)
     {
-       qDebug() <<"没有热搜可以显示";
-       return ;
+        qDebug() << "没有热搜可以显示";
+        return;
     }
-    
+
     // 确保 X 不越界，若超过最大索引，则从 0 开始
-    if (X >= hotsearch_Titles.size()) {
+    if (X >= hotsearch_Titles.size())
+    {
         X = 0;
     }
 
@@ -1001,7 +1013,6 @@ void MainWindow::RefreshHotSearch()
     // 每次调用后 X + 1
     X++;
 }
-
 
 void MainWindow::checkNetworkStatus()
 {
@@ -1311,40 +1322,36 @@ void MainWindow::DisposeDate(S_HTTP_RESPONE s_back)
             qDebug() << "Date set successfully.";
         }
 
-        // 通过硬件时钟同步系统时间
-        /* process->start("sudo hwclock --systohc");
-         process->waitForFinished();
-         qDebug() << "Hardware clock synced with system time.";*/
-        system("hwclock --systohc -f /dev/rtc1");
+        // 释放 QProcess 对象
+        process->deleteLater(); // 通过 deleteLater 确保不会泄漏
 
-        QTimer *timer = new QTimer();
-        /* connect(timer, &QTimer::timeout, this, [](){
-             qDebug() << "Timeout aaatriggered!";
-           //  PULLDOWN_ELCLOCK;
-         });*/
-        connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplayTime);
-        timer->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
+        // 通过硬件时钟同步系统时间
+        system("hwclock --systohc -f /dev/rtc1");
     }
     else
     {
         qDebug() << "无效的 JSON 格式";
     }
 }
+
 void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
 {
+
     QJsonDocument doc = QJsonDocument::fromJson(s_back.Message.toUtf8());
 
     // 如果解析成功，提取 msg 字段
     if (doc.isObject())
     {
         QJsonObject obj = doc.object();
-       // QStringList titles;
 
         // Check if "data" exists and is an array
         if (obj.contains("data") && obj["data"].isArray())
         {
             // Extract the "data" array from the JSON object
             QJsonArray dataArray = obj["data"].toArray();
+
+            // Clear hotsearch_Titles before appending new values
+            hotsearch_Titles.clear();
 
             // Iterate over the array and extract each title
             for (const QJsonValue &value : dataArray)
