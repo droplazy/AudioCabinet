@@ -87,10 +87,10 @@ color: rgb(243, 243, 243);</string>
    <widget class="QLabel" name="label_HotSearch">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>120</x>
       <y>10</y>
-      <width>401</width>
-      <height>41</height>
+      <width>584</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="font">
@@ -99,7 +99,8 @@ color: rgb(243, 243, 243);</string>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: rgb(243, 243, 243);</string>
+     <string notr="true">background-image: url(:/ui/hotserch.png);
+color: white;text-align: center;vertical-align: middle;</string>
     </property>
     <property name="text">
      <string/>
@@ -221,6 +222,102 @@ color: rgb(243, 243, 243);</string>
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="label_wifi">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>10</y>
+      <width>18</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/wifi_level3.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_bluetooth">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>13</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/blutooth.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_line_bright">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>140</y>
+      <width>2</width>
+      <height>135</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/vol_line.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_line_bottom">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>140</y>
+      <width>2</width>
+      <height>135</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/vol-line.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_vol_pot">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>270</y>
+      <width>18</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/volPoint.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_vol_ui">
+    <property name="geometry">
+     <rect>
+      <x>35</x>
+      <y>290</y>
+      <width>10</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/volume.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>label_artist</zorder>
    <zorder>label_aumble</zorder>
    <zorder>label</zorder>
@@ -231,6 +328,12 @@ color: rgb(243, 243, 243);</string>
    <zorder>label_Weather_future</zorder>
    <zorder>label_title</zorder>
    <zorder>label_HotSearch</zorder>
+   <zorder>label_wifi</zorder>
+   <zorder>label_bluetooth</zorder>
+   <zorder>label_line_bright</zorder>
+   <zorder>label_line_bottom</zorder>
+   <zorder>label_vol_pot</zorder>
+   <zorder>label_vol_ui</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

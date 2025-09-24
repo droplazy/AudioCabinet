@@ -4,17 +4,21 @@
 #include <QJsonDocument>
 #include <QFile>
 HttpClient::HttpClient(QObject *parent)
-    : QObject(parent), networkManager(new QNetworkAccessManager(this))
+    : QObject(parent)
 {
     // 连接网络请求完成的信号
+     networkManager = new QNetworkAccessManager();
     connect(networkManager, &QNetworkAccessManager::finished,
             this, &HttpClient::onFinished);
 }
 
 void HttpClient::sendGetRequest(QUrl url)
 {
+   //     networkManager = new QNetworkAccessManager();
+
     // 创建 GET 请求的 URL
     //("https://jsonplaceholder.typicode.com/posts/1");
+
     QNetworkRequest request(url);
 
     // 发送 GET 请求
@@ -23,6 +27,7 @@ void HttpClient::sendGetRequest(QUrl url)
 
 void HttpClient::sendPostRequest(QUrl url)
 {
+
     // QUrl url("https://jsonplaceholder.typicode.com/posts");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -41,25 +46,27 @@ void HttpClient::sendPostRequest(QUrl url)
 }
 void HttpClient::printChache()
 {
-    if (p_test != NULL)
-    {
-        qDebug() << "Monitor Chache status:\n";
-        qDebug() << p_test->bytes.length();
-        // p_test->print();
-    }
+    // if (p_test != NULL)
+    // {
+    //     qDebug() << "Monitor Chache status:\n";
+    //     qDebug() << p_test->bytes.length();
+    //     // p_test->print();
+    // }
 }
 
 void HttpClient::onFinished(QNetworkReply *reply)
 {
-    S_HTTP_RESPONE GetRespone;
+     S_HTTP_RESPONE GetRespone;
     qDebug() << "operation:" << reply->operation();
     qDebug() << "url:" << reply->url();
     qDebug() << "size:" << reply->size();
 
     // 状态码
-    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    qDebug() << "status code:" << statusCode;
-
+    //   int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    //   qDebug() << "status code:" << statusCode;
+   // reply->deleteLater();
+   // return;
+#if 1
     if (reply->error() == QNetworkReply::NoError)
     {
         // 判断响应内容类型
@@ -71,7 +78,6 @@ void HttpClient::onFinished(QNetworkReply *reply)
             GetRespone.bytes = reply_data;
             qDebug() << "getpicture size " << reply_data.length();
             qDebug() << "status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-            p_test = &GetRespone;
         }
         else
         {
@@ -122,8 +128,12 @@ void HttpClient::onFinished(QNetworkReply *reply)
     }
 
     // 确保 GetRespone 是通过信号传递
-    emit HttpResult(GetRespone);
+
 
     // 正确删除 QNetworkReply
+    emit HttpResult(GetRespone);
     reply->deleteLater();
+    //networkManager->deleteLater();
+  
+#endif
 }

@@ -107,7 +107,7 @@ void Key_event::run()
             { // 松开的时候立刻发送信号   按下的时消抖一段延时
                 key_finger = GetGpioStatus("/proc/rp_gpio/input_finger");
                 emit fingerKeysig(key_finger);
-                qDebug() << "emit ! debug  todo " << fingerPressTimer.elapsed() << "key_finger" << key_finger;
+               qDebug() << "emit ! debug  todo " << fingerPressTimer.elapsed() << "key_finger" << key_finger;
                 fingerPressTimer.restart(); // 重置消抖计时器
             }
         }

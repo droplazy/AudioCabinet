@@ -122,5 +122,15 @@
         <file>SetupSerialPort.c</file>
         <file>SetupSerialPort.h</file>
         <file>ui/refrence .png</file>
+        <file>ui/blutooth.png</file>
+        <file>ui/nowifi.png</file>
+        <file>ui/vol-line.png</file>
+        <file>ui/vol_line.png</file>
+        <file>ui/volPoint.png</file>
+        <file>ui/wifi_level1.png</file>
+        <file>ui/wifi_level2.png</file>
+        <file>ui/wifi_level3.png</file>
+        <file>ui/hotserch.png</file>
+        <file>ui/volume.png</file>
     </qresource>
 </RCC>

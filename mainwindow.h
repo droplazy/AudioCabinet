@@ -55,6 +55,7 @@ public:
     bool writeToOutputLock(int value);
 
     int getNetCheckCount();
+    void VolumeRegulateDisplay();
 public slots:
     void flushNetUI();
     void EnrollFinger();

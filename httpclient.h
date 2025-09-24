@@ -23,7 +23,7 @@ signals:
 
 private:
     QNetworkAccessManager *networkManager;
-    S_HTTP_RESPONE *p_test = nullptr;
+ //   S_HTTP_RESPONE *p_test = nullptr;
 };
 
 #endif // HTTPCLIENT_H

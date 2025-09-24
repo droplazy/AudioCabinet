@@ -146,11 +146,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     // sleep(3);.
     wifiLaunch();
 
-    p_http = new HttpClient();
     p_thread = new main_thread();
     p_finger = new FingerThread();
     p_keyevent = new Key_event();
     p_gatt = new gattthread();
+    p_http = new HttpClient();
     connect(p_http, SIGNAL(HttpResult(S_HTTP_RESPONE)), this, SLOT(DisposeHttpResult(S_HTTP_RESPONE)), Qt::AutoConnection); //
     // connect(p_thread, SIGNAL(wlanConnected()), this, SLOT(flushNetUI()), Qt::AutoConnection);                               // HTTP抓取数据借口                              // updateAudioTrack
     connect(p_thread, SIGNAL(updateAudioTrack()), this, SLOT(displayAudioMeta()), Qt::AutoConnection);           //                                                                                                               // connect(p_thread, SIGNAL(DebugSignal()), this, SLOT(UserAddFinger()), Qt::AutoConnection);                              //
@@ -160,10 +160,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(p_gatt, SIGNAL(deviceFormat()), this, SLOT(ClearFinger()), Qt::AutoConnection);                      //
     connect(p_keyevent, SIGNAL(fingerKeysig(bool)), p_finger, SLOT(update_fingerkey(bool)), Qt::AutoConnection); //
 
-    p_keyevent->start();
-    p_finger->start();
-    p_thread->start();
-    p_gatt->start();
+     p_keyevent->start();
+     p_finger->start();
+     p_thread->start();
+     p_gatt->start();
 #if RotationLabel
 
     label_around = new RotatingRoundLabel(108, this); // 创建一个半径为100的圆形标签
@@ -183,6 +183,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     label_aumblePic->resize(214, 214);
     // label_aumblePic->setStyleSheet("background-color: green;");
 
+    ui->label_wifi->hide();
+    ui->label_bluetooth->hide();
+
+    ui->label_HotSearch->setAlignment(Qt::AlignCenter);  // 水平和垂直都居中
+
+
 #endif
 #if 1
 
@@ -196,10 +202,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 #endif
 
     checkNetworkStatus();
-    connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
-    timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
-    // connect(timer_2, &QTimer::timeout, this, &MainWindow::flushNetUI);
-    // timer_2->start(500); // 每20ms更新一次（可根据需要调整旋转速度）
+#if 1
+ //   connect(timer_2, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
+  //  timer_2->start(getNetCheckCount()); // 每20ms更新一次（可根据需要调整旋转速度）
+    connect(timer_2, &QTimer::timeout, this, &MainWindow::flushNetUI);
+    timer_2->start(1000); 
 
     connect(timer_3, &QTimer::timeout, this, [this]()
             {
@@ -208,9 +215,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     timer_3->start(60 * 1000 * 5);
 
     connect(timer_5, &QTimer::timeout, this, &MainWindow::RefreshHotSearch); // 热搜五秒更新一次
-    timer_5->start(1000 * 5);
-    /*connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplayTime);
-        timer_6->start(5*1000); // 每20ms更新一次（可根据需要调整旋转速度）*/
+    timer_5->start(1000 * 30);
+    #endif
+    connect(timer_6, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
+        timer_6->start(5*1000); //
 }
 int MainWindow::getNetCheckCount()
 {
@@ -343,7 +351,7 @@ void MainWindow::GetWeatherToday()
     QUrlQuery query;
     query.addQueryItem("id", API_ID);
     query.addQueryItem("key", API_KEY);
-    query.addQueryItem("ip", "101.68.34.143");
+    query.addQueryItem("ip", "101.68.34.143");//TODO
 
     url.setQuery(query); // 设置 URL 的查询部分
     p_http->sendGetRequest(url);
@@ -428,6 +436,7 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 {
     p_http->printChache();
     qDebug() << jsonString;
+
     // 解析 JSON 数据
     QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
     if (!doc.isObject())
@@ -438,22 +447,28 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 
     QJsonObject jsonObj = doc.object();
     QJsonArray dataArray = jsonObj["data"].toArray();
+    QString place = jsonObj["place"].toString();  // 获取地区信息
 
     // 获取当前日期、明天和后天的日期
     QDateTime currentDate = dateTime;
     QDateTime tomorrow = currentDate.addDays(1);
     QDateTime dayAfterTomorrow = currentDate.addDays(2);
 
-    // 获取日期字符串，格式化为"MM/dd"
     QString currentDateString = currentDate.toString("MM/dd");
     QString tomorrowDateString = tomorrow.toString("MM/dd");
     QString dayAfterTomorrowDateString = dayAfterTomorrow.toString("MM/dd");
 
-    // 遍历数据，找出今天、明天和后天的天气
-    QString todayMaxTemp, todayMinTemp;
-    QString tomorrowMaxTemp, tomorrowMinTemp;
-    QString dayAfterTomorrowMaxTemp, dayAfterTomorrowMinTemp;
+    // 用于存储温度和天气信息
+    struct WeatherInfo {
+        QString minTemp;
+        QString maxTemp;
+        QString weatherDay;
+        QString weatherNight;
+    };
 
+    WeatherInfo today, tomorrowInfo, dayAfterTomorrowInfo;
+
+    // 遍历数据，找出今天、明天和后天的天气
     for (const QJsonValue &value : dataArray)
     {
         QJsonObject dayObj = value.toObject();
@@ -461,47 +476,104 @@ void MainWindow::disposeWeatherInfo(QString jsonString)
 
         if (date == currentDateString)
         {
-            todayMaxTemp = dayObj["wendu1"].toString();
-            todayMinTemp = dayObj["wendu2"].toString();
+            today.maxTemp = dayObj["wendu1"].toString();
+            today.minTemp = dayObj["wendu2"].toString();
+            today.weatherDay = dayObj["wea1"].toString();
+            today.weatherNight = dayObj["wea2"].toString();
         }
-        if (date == tomorrowDateString)
+        else if (date == tomorrowDateString)
         {
-            tomorrowMaxTemp = dayObj["wendu1"].toString();
-            tomorrowMinTemp = dayObj["wendu2"].toString();
+            tomorrowInfo.maxTemp = dayObj["wendu1"].toString();
+            tomorrowInfo.minTemp = dayObj["wendu2"].toString();
+            tomorrowInfo.weatherDay = dayObj["wea1"].toString();
+            tomorrowInfo.weatherNight = dayObj["wea2"].toString();
         }
-        if (date == dayAfterTomorrowDateString)
+        else if (date == dayAfterTomorrowDateString)
         {
-            dayAfterTomorrowMaxTemp = dayObj["wendu1"].toString();
-            dayAfterTomorrowMinTemp = dayObj["wendu2"].toString();
+            dayAfterTomorrowInfo.maxTemp = dayObj["wendu1"].toString();
+            dayAfterTomorrowInfo.minTemp = dayObj["wendu2"].toString();
+            dayAfterTomorrowInfo.weatherDay = dayObj["wea1"].toString();
+            dayAfterTomorrowInfo.weatherNight = dayObj["wea2"].toString();
         }
     }
 
-    // 输出结果
-    /*qDebug() << "Today: Max Temp: " << todayMaxTemp << ", Min Temp: " << todayMinTemp;
-    qDebug() << "Tomorrow: Max Temp: " << tomorrowMaxTemp << ", Min Temp: " << tomorrowMinTemp;
-    qDebug() << "Day After Tomorrow: Max Temp: " << dayAfterTomorrowMaxTemp << ", Min Temp: " << dayAfterTomorrowMinTemp;
-    QString weatherInfo = QString("Today: Max Temp: %1, Min Temp: %2\n"
-                                 "Tomorrow: Max Temp: %3, Min Temp: %4\n"
-                                 "Day After Tomorrow: Max Temp: %5, Min Temp: %6")
-                                 .arg(todayMaxTemp)
-                                 .arg(todayMinTemp)
-                                 .arg(tomorrowMaxTemp)
-                                 .arg(tomorrowMinTemp)
-                                 .arg(dayAfterTomorrowMaxTemp)
-                                 .arg(dayAfterTomorrowMinTemp);
+    QImage *img = new QImage; // 新建一个image对象
 
-    // 输出结果到qDebug()
-    qDebug() << weatherInfo;*/
-    QString weatherInfo = QString("%1 / %2")
-                              .arg(todayMinTemp)  // 今日最高温度
-                              .arg(todayMaxTemp); // 今日最低温度
+    // 获取当前时间的小时
+    int currentHour = currentDate.time().hour();
 
-    // 输出结果到qDebug()（可以根据需要保留或删除）
-    // qDebug() << weatherInfo;
+    // 判断是否为白天（假设6点到18点为白天）
+    bool isDayTime = (currentHour >= 6 && currentHour < 18);
 
-    // 设置标签显示
-    ui->label_Weather_future->setText(weatherInfo);
+    // 根据是否是白天判断使用白天或晚上的天气
+    QString weather = isDayTime ? today.weatherDay : today.weatherNight;
+    qDebug() << "weather is " << weather;
+    // 根据weather选择合适的图像资源
+    if (weather.contains("晴"))
+    {
+        img->load(":/ui/sunny.png"); // 晴
+    }
+    else if (weather.contains("多云"))
+    {
+        img->load(":/ui/cloudy_sun.png"); // 多云
+    }
+    else if (weather.contains("阴"))
+    {
+        img->load(":/ui/cloudy.png"); // 阴
+    }
+    else if (weather.contains("小雨"))
+    {
+        img->load(":/ui/rain_small.png"); // 小雨
+    }
+    else if (weather.contains("中雨") || weather.contains("阵雨"))
+    {
+        img->load(":/ui/rain_middle.png"); // 中雨
+    }
+    else if (weather.contains("大雨"))
+    {
+        img->load(":/ui/rain_heavy.png"); // 大雨
+    }
+    else if (weather.contains("雪"))
+    {
+        img->load(":/ui/snow_middle.png"); // 雪
+    }
+    else
+    {
+        img->load(":/picture/faild.png"); // 默认图像
+        qDebug() << "WEATHER PIC LOAD FAILED!!!!!";
+    }
+    // 将选定的图片调整为 31x31 像素，并放入label
+    QPixmap pixmap = QPixmap::fromImage(*img).scaled(31, 31, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    ui->label_Weather_today->setPixmap(pixmap); // 使用调整大小后的pixmap
+
+    delete img;
+        // 构造显示信息
+    QString weatherInfo = QString(
+    "地点: %1\n"
+    "今天: %2 / %3, 天气: %4 -> %5\n"
+    "明天: %6 / %7, 天气: %8 -> %9\n"
+    "后天: %10 / %11, 天气: %12 -> %13")
+    .arg(place)
+    .arg(today.minTemp).arg(today.maxTemp).arg(today.weatherDay).arg(today.weatherNight)
+    .arg(tomorrowInfo.minTemp).arg(tomorrowInfo.maxTemp).arg(tomorrowInfo.weatherDay).arg(tomorrowInfo.weatherNight)
+    .arg(dayAfterTomorrowInfo.minTemp).arg(dayAfterTomorrowInfo.maxTemp).arg(dayAfterTomorrowInfo.weatherDay).arg(dayAfterTomorrowInfo.weatherNight);
+
+    // 输出到 qDebug()
+    qDebug() << weatherInfo;
+
+    // 设置标签显示（可以只显示今天的温度/天气）
+  /*  ui->label_Weather_future->setText(
+        QString("%1 / %2, %3 -> %4")
+        .arg(today.minTemp).arg(today.maxTemp)
+        .arg(today.weatherDay).arg(today.weatherNight)
+    );*/
+    // 设置标签显示（可以只显示今天的温度/天气）
+    ui->label_Weather_future->setText(
+        QString("%1 / %2")
+        .arg(today.minTemp).arg(today.maxTemp)
+    );
 }
+
 
 void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
 {
@@ -556,6 +628,7 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
         else
         {
             img->load(":/picture/faild.png"); // 默认图像
+            qDebug() << "WEATHER PIC LOAD FAILDED!!!!!";
         }
 
         // 将选定的图片调整为 31x31 像素，并放入label
@@ -799,7 +872,7 @@ void MainWindow::CreatSpectrum()
         // 创建并设置 labels_top
         labels_top[i] = new QLabel(this);
         labels_top[i]->setObjectName(QString("spectrum_top_%1").arg(i + 1)); // 显式设置 objectName
-        labels_top[i]->move(x + label_position * (25 + spacing), 480);       // 设置 QLabel 的位置
+        labels_top[i]->move(x + label_position * (25 + spacing), 482);       // 设置 QLabel 的位置
         labels_top[i]->setPixmap(pixmap);
         // labels_top[i]->setStyleSheet("font-size: 14px; font-weight: bold; color: red; background-color: blue;");
         labels_top[i]->raise();        // 将 labels_top 放在最上层
@@ -976,17 +1049,103 @@ void MainWindow::DebugChache()
     p_http->sendGetRequest(QUrl("http://img0.baidu.com/it/u=4101285560,1286785277&fm=253&fmt=auto&app=120&f=JPEG"));
 }
 
+QString getApplicationPid() {
+    QProcess process;
+    process.start("ps", QStringList() << "-ef");
+    process.waitForFinished();
+
+    QString output = process.readAllStandardOutput();
+    QStringList lines = output.split("\n");
+
+    // 遍历输出的每一行，查找包含 "./application" 的进程
+    for (const QString &line : lines) {
+   //     qDebug() <<line;
+        if (line.contains("./application")) {  // 使用完整的进程名称
+            // 获取进程的PID
+            QStringList columns = line.split(QRegExp("\\s+"));
+            if (columns.size() > 1) {
+                return columns[1];  // PID 在第二列
+            }
+        }
+    }
+    return "";  // 如果没有找到匹配的进程
+}
+
+#include <QProcess>
+#include <QString>
+#include <QDebug>
+#include <QRegularExpression>
+QString getVmRSS(const QString &pid) {
+    // 使用 QProcess 执行 shell 命令
+    QProcess process;
+    QString command = QString("cat /proc/%1/status | grep VmRSS:").arg(pid);
+    
+    process.start(command);
+    process.waitForFinished();
+    
+    // 获取命令执行后的输出
+    QByteArray output = process.readAllStandardOutput();
+    
+    if (output.isEmpty()) {
+        return "Could not find VmRSS for PID " + pid;
+    }
+    
+    QRegularExpression regex("VmRSS:\\s*(\\d+\\s*kB)");
+    QRegularExpressionMatch match = regex.match(output);
+    QString vmRSS ;
+    if (match.hasMatch()) {
+        // 提取并打印 VmRSS
+         vmRSS = match.captured(0);
+        qDebug() << vmRSS;
+    } else {
+        qDebug() << "VmRSS not found.";
+    }
+
+    // 将输出转化为 QString 并返回
+  //  QString result = QString(output).trimmed();
+    
+    return vmRSS;
+}
+
+
 void MainWindow::flushNetUI()
 {
-    //  if (flushOK == true)
-    //     return;
+      if (flushOK == true)
+         return;
+ //   p_http
+   static int cnt = 0;
     qDebug() << "VAEVAEAVEVAEVAEVAVE";
-    GetDeviceIP();
-    GetHotSearch();//todo
-    GetDateToday();
-    GetWeatherToday();
-   //  flushOK = true;
-    // GetOnewords();
+    #if 0
+       QString pid = getApplicationPid();
+    if (!pid.isEmpty()) {
+        QString vmRss = getVmRSS(pid);
+        qDebug() << "*************************************************************************************";
+        qDebug() << "Process ID:" << pid;
+        qDebug() << "cnt:" << cnt;
+
+        qDebug() << "*************************************************************************************";
+    } else {
+        qDebug() << "Application process not found.";
+    }
+    {
+    // if (cnt ++ >= 200 )
+    //     {
+    //         delete  p_http;
+
+    //     }
+    if (cnt ++ >= 100 )
+
+       return ;
+
+    }
+    
+#endif 
+     GetDeviceIP();
+       GetHotSearch();//todo
+     GetDateToday();
+   //  GetWeatherToday(); not link
+     flushOK = true;
+   //  GetOnewords();
 }
 void MainWindow::RefreshHotSearch()
 {
@@ -994,10 +1153,11 @@ void MainWindow::RefreshHotSearch()
     updateDisplayTime();
     if (hotsearch_Titles.size() < 1)
     {
+         flushOK = false;
         qDebug() << "没有热搜可以显示";
         return;
     }
-
+     qDebug() << " hotsearch_Titles.size():"<< hotsearch_Titles.size();
     // 确保 X 不越界，若超过最大索引，则从 0 开始
     if (X >= hotsearch_Titles.size())
     {
@@ -1029,8 +1189,12 @@ void MainWindow::checkNetworkStatus()
     if (output.contains("1 packets transmitted, 1 packets received"))
     {
         //  qDebug() << "Device is connected to the network.";
-        network = true;
-
+        if(network == false)
+        {
+               flushOK = false;
+               network = true;
+        }
+        ui->label_wifi->show();
         if (timer_2->isActive())
         {
             timer_2->stop(); // 确保定时器停止
@@ -1054,6 +1218,7 @@ void MainWindow::checkNetworkStatus()
         if (network)
         {
             network = false;
+            ui->label_wifi->hide();
 
             qDebug() << "network from true to false ";
             if (timer_2->isActive())
@@ -1177,8 +1342,25 @@ void MainWindow::wifiLaunch() // todo
     // system("wifi -o sta\n");
     // system("wifi -c ThanksGivingDay_111 Zz123456\n"); // todo
 }
+
+void MainWindow::VolumeRegulateDisplay()
+{
+    // 使用浮点数计算，确保过渡平滑
+    float y_value = 270 - ((float)volume_scale / 20 * 135); // 使用浮点数运算
+    int y = static_cast<int>(y_value); // 转回整数
+
+    QPoint pos(32, y);
+    ui->label_vol_pot->move(pos);  // 移动label到新的位置
+    //qDebug() << "pos:" << pos << "y" << y;
+
+    // 更新线的显示
+    ui->label_line_bright->setGeometry(40, 275 - static_cast<int>((float)volume_scale / 20 * 135), 2, static_cast<int>((float)volume_scale / 20 * 135));
+}
 void MainWindow::displaySpectrum()
 {
+
+    VolumeRegulateDisplay();
+
     if (strlen(blue_addr) > 0)
     {
         p_keyevent->blue_addr = blue_addr;
@@ -1359,7 +1541,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
             }
 
             // Output the titles for debugging purposes
-            qDebug() << hotsearch_Titles;
+        //    qDebug() << hotsearch_Titles;
 
             if (!hotsearch_Titles.isEmpty())
             {
@@ -1374,7 +1556,7 @@ void MainWindow::DisposeHotSearch(S_HTTP_RESPONE s_back)
     else
     {
         qDebug() << "无效的 JSON 格式";
-        qDebug() << s_back.Message;
+    //    qDebug() << s_back.Message;
     }
 }
 
