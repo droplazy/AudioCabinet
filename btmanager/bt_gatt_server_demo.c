@@ -51,6 +51,7 @@ static void bt_test_gatt_connection_cb(char *addr, gatts_connection_event_t even
         printf("gatt server Connected: %s.\n", addr);
     } else if (event == BT_GATT_DISCONNECT) {
         printf("gatt server Disconnected: %s (reason UNKONW)\n", addr);
+        bt_gatt_server_init();
     } else if (event == BT_GATT_CONNECT_FAIL) {
         printf("gatt server set connect failed: %s\n", addr);
     } else {
@@ -101,7 +102,7 @@ static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
     static unsigned char count = 0;
     char dev_name[] = "aw_ble_test_1149";
 
-    printf("trans_id:%d,attr_handle:0x%04x,offset:%d\n", chr_read->trans_id, chr_read->attr_handle,
+    printf("[%d]trans_id:%d,attr_handle:0x%04x,offset:%d\n", count,chr_read->trans_id, chr_read->attr_handle,
            chr_read->offset);
 
     if (chr_read) {
@@ -122,11 +123,14 @@ static void bt_test_gatt_char_read_request_cb(gatts_char_read_req_t *chr_read)
         data.attr_handle = chr_read->attr_handle;
         data.status = 0x0b;
         data.auth_req = 0x00;
-//        value[0] = count;
+        value[0] = count;
         data.value = sendmessage;
         data.value_len = strlen(sendmessage);
       //  memcpy(&data ,&global_gattMsg_send,sizeof(gatts_send_read_rsp_t));
-        bt_manager_gatt_server_send_read_response(&data);
+        printf("msg sent [%d] :\n %s \n ",data.value_len ,data.value);
+      //  bt_manager_gatt_server_send_read_response(&data);
+        bt_test_send_notify(chr_read->attr_handle,sendmessage,strlen(sendmessage));
+        bzero(sendmessage,sizeof(sendmessage));
         count++;
     }
 }
@@ -161,25 +165,27 @@ static void bt_test_gatt_char_write_request_cb(gatts_char_write_req_t *char_writ
 #else
     BTMG_INFO("write need rsp: %d", char_write->need_rsp);
     if (char_write) {
-        BTMG_INFO("attr_handle: 0x%04x, tran_id: %d, len: %d", char_write->attr_handle, char_write->trans_id, char_write->value_len);
+        BTMG_INFO("aZHANGJIAHAO DBUE G ");
         bt_manager_hex_dump((char *)" ", 20, (unsigned char *)char_write->value, char_write->value_len);
         GetMsgFlag = 1;
         memcpy(&global_gattMsg_recive, char_write, sizeof(gatts_char_write_req_t));
-
+       // bt_test_send_notify(char_write->attr_handle,"best wish for me ",strlen("best wish for me "));
     }
 
 #endif
 
     if (char_write->need_rsp) {
+        BTMG_INFO("write need rsp: %d", char_write->need_rsp);
+
         gatts_write_rsp_t data;
         data.trans_id = char_write->trans_id;
         data.attr_handle = char_write->attr_handle;
         data.state = BT_GATT_SUCCESS;
         ret = bt_manager_gatt_server_send_write_response(&data);
         if (ret != 0)
-            BTMG_DEBUG("send write response failed!\n");
+            BTMG_INFO("send write response failed!\n");
         else
-            BTMG_DEBUG("send write response success!\n");
+            BTMG_INFO("send write response success!\n");
     }
 }
 
@@ -548,7 +554,7 @@ static int bt_test_send_indication(int attr_handle, char *data, int len)
     return 0;
 }
 
-static int bt_test_send_notify(int attr_handle, char *data, int len)
+ int bt_test_send_notify(int attr_handle, char *data, int len)
 {
     char default_data[] = "hello";
 

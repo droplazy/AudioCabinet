@@ -218,7 +218,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     timer_5->start(1000 * 30);
     #endif
     connect(timer_6, &QTimer::timeout, this, &MainWindow::checkNetworkStatus);
-        timer_6->start(5*1000); //
+        timer_6->start(3*1000); //
 }
 int MainWindow::getNetCheckCount()
 {
@@ -651,8 +651,8 @@ void MainWindow::disposeWeathertoday(S_HTTP_RESPONE s_back)
 
 void MainWindow::displayAudioMeta()
 {
-    ui->label_aumble->setText(total_info_audio.album);
-    ui->label_aumble->setStyleSheet("color:white;");
+    //ui->label_aumble->setText(total_info_audio.album);
+   //ui->label_aumble->setStyleSheet("color:white;");
     // ui->label_duration->setText(convertDurationToTimeFormat(total_info_audio.duration));
     //  ui->label_position->setText(convertDurationToTimeFormat(total_info_audio.Position));
     ui->label_title->setText(total_info_audio.title);
@@ -676,8 +676,8 @@ void MainWindow::displayAudioMeta()
             GetAlbumPicture(result, "1", "10");
     }
 
-    ui->label_artist->setText(total_info_audio.artist);
-    ui->label_artist->setStyleSheet("color:white;");
+    //ui->label_artist->setText(total_info_audio.artist);
+    //ui->label_artist->setStyleSheet("color:white;");
     //    if(p_meta->Status == "playing" && a_sta != PLAYING)
     //    {
     //        a_sta=PLAYING;
@@ -1173,8 +1173,8 @@ void MainWindow::RefreshHotSearch()
 
 void MainWindow::checkNetworkStatus()
 {
-    QElapsedTimer timer; // 创建计时器
-    timer.start();       // 启动计时器
+    //QElapsedTimer timer; // 创建计时器
+    //timer.start();       // 启动计时器
     QProcess process;
     process.start("ping", QStringList() << "-c" << "1" << "www.baidu.com"); // Linux/macOS 使用 -c 参数，Windows 使用 -n
     process.waitForFinished();                                              // 等待 ping 命令完成
@@ -1182,7 +1182,7 @@ void MainWindow::checkNetworkStatus()
     QString output = process.readAllStandardOutput(); // 获取 ping 命令的输出
                                                       //  qDebug() << "Ping output:" << output;
 
-    qint64 elapsed = timer.elapsed(); // 获取从启动到现在的时间（毫秒）
+    //qint64 elapsed = timer.elapsed(); // 获取从启动到现在的时间（毫秒）
                                       //  qDebug() << "Network check finished, cost" << elapsed * 1000 << "us"; // 打印花费的时间，转换为微秒
 
     // 修改后的判断逻辑，确保字符串完全匹配
@@ -1195,6 +1195,14 @@ void MainWindow::checkNetworkStatus()
                network = true;
         }
         ui->label_wifi->show();
+        if(p_gatt->GATT_STATE ==GATT_MASSAGE::GATT_NETWORKCONFIGURE_RES)
+        {
+            p_gatt->ResponeGattWIFICFG(true);
+            p_gatt->GATT_STATE = GATT_MASSAGE::GATT_IDLE;
+        }
+
+
+
         if (timer_2->isActive())
         {
             timer_2->stop(); // 确保定时器停止
@@ -1346,7 +1354,14 @@ void MainWindow::wifiLaunch() // todo
 void MainWindow::VolumeRegulateDisplay()
 {
     // 使用浮点数计算，确保过渡平滑
-    float y_value = 270 - ((float)volume_scale / 20 * 135); // 使用浮点数运算
+    int scale =0;
+    if(volume_scale < 0)
+        scale =0;
+    else
+        scale = volume_scale;
+
+
+    float y_value = 270 - ((float)scale / 20 * 135); // 使用浮点数运算
     int y = static_cast<int>(y_value); // 转回整数
 
     QPoint pos(32, y);
@@ -1354,7 +1369,7 @@ void MainWindow::VolumeRegulateDisplay()
     //qDebug() << "pos:" << pos << "y" << y;
 
     // 更新线的显示
-    ui->label_line_bright->setGeometry(40, 275 - static_cast<int>((float)volume_scale / 20 * 135), 2, static_cast<int>((float)volume_scale / 20 * 135));
+    ui->label_line_bright->setGeometry(40, 275 - static_cast<int>((float)scale / 20 * 135), 2, static_cast<int>((float)scale / 20 * 135));
 }
 void MainWindow::displaySpectrum()
 {

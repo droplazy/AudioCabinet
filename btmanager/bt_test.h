@@ -129,6 +129,7 @@ int bt_gatt_client_deinit();
 void bt_gatt_server_register_callback(btmg_callback_t *cb);
 int bt_gatt_server_init();
 int bt_gatt_server_deinit();
+int bt_test_send_notify(int attr_handle, char *data, int len);
 
 
 

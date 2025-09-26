@@ -132,5 +132,8 @@
         <file>ui/wifi_level3.png</file>
         <file>ui/hotserch.png</file>
         <file>ui/volume.png</file>
+        <file>ui/backgrounddoodle3.png</file>
+        <file>ui/backgrounddoodle2.png</file>
+        <file>ui/backgrounddoodle.png</file>
     </qresource>
 </RCC>

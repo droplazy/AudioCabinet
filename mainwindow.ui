@@ -24,40 +24,6 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="label_artist">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>220</y>
-      <width>561</width>
-      <height>34</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">
-color: rgb(243, 243, 243);</string>
-    </property>
-    <property name="text">
-     <string>歌手 </string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_aumble">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>260</y>
-      <width>561</width>
-      <height>34</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">
-color: rgb(243, 243, 243);</string>
-    </property>
-    <property name="text">
-     <string>专辑  </string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_title">
     <property name="geometry">
      <rect>
@@ -318,22 +284,38 @@ color: white;text-align: center;vertical-align: middle;</string>
      <string/>
     </property>
    </widget>
-   <zorder>label_artist</zorder>
-   <zorder>label_aumble</zorder>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>60</y>
+      <width>751</width>
+      <height>761</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/ui/backgrounddoodle2.png);
+background-image: url(:/ui/backgrounddoodle3.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>label</zorder>
    <zorder>label_background</zorder>
+   <zorder>label_3</zorder>
    <zorder>label_date</zorder>
+   <zorder>label_Weather_future</zorder>
+   <zorder>label_vol_ui</zorder>
+   <zorder>label_line_bottom</zorder>
+   <zorder>label_bluetooth</zorder>
+   <zorder>label_wifi</zorder>
+   <zorder>label_line_bright</zorder>
+   <zorder>label_title</zorder>
+   <zorder>label_vol_pot</zorder>
    <zorder>label_date_2</zorder>
    <zorder>label_Weather_today</zorder>
-   <zorder>label_Weather_future</zorder>
-   <zorder>label_title</zorder>
    <zorder>label_HotSearch</zorder>
-   <zorder>label_wifi</zorder>
-   <zorder>label_bluetooth</zorder>
-   <zorder>label_line_bright</zorder>
-   <zorder>label_line_bottom</zorder>
-   <zorder>label_vol_pot</zorder>
-   <zorder>label_vol_ui</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

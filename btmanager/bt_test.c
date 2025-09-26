@@ -35,7 +35,7 @@
 
 #define CMD_ARGS_MAX 20
 
-int sd_status =0;;
+int sd_status =0;
 
 
 

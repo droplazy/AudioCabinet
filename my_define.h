@@ -20,6 +20,12 @@
 #define URL_WEATHERTODAY        "http://vip.apihz.cn/api/tianqi/tqybip.php"
 
 
+enum class GATT_MASSAGE {
+       GATT_IDLE,
+       GATT_NETWORKCONFIGURE_RES
+};
+
+
 enum HTTP_TYPE {
     HOT_SEACH_WEIBO,
     HOT_SEACH_DOUYIN,

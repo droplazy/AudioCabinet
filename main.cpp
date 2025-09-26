@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
   system("ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime");
   // system("hwclock --hctosys -f /dev/rtc1");
   rtc_init();
-#if 0
+#if 1
   // set system Font
   //       system("echo 0 > /proc/rp_gpio/output_sd");
   int id = QFontDatabase::addApplicationFont("/usr/lib/fonts/DroidSansFallback.ttf");

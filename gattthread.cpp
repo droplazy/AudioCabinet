@@ -3,12 +3,80 @@
 #include <QDateTime>
 #include <QProcess>
 
+#include <QJsonObject>
+
+
+QJsonObject gattthread::generateJson(int resultId, const QString &operationType)
+{
+    QJsonObject jsonObj;
+
+    // 获取当前时间戳（以秒为单位）
+    qint64 timestamp = QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000;  // 转换为秒
+
+    // 填充 JSON 对象
+    jsonObj["Timestamp"] = QString::number(timestamp);  // 设置时间戳
+    jsonObj["messageId"] = messageId;                    // 使用全局 messageId
+    jsonObj["operationType"] = operationType;            // 设置操作类型
+    jsonObj["resultId"] = resultId;                      // 设置结果 ID
+
+    return jsonObj;
+}
+
+void gattthread::ResponeGatt(char * data )
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+
+    // 获取当前时间的 Unix 时间戳（毫秒）
+    qint64 timestampMS = currentTime.toMSecsSinceEpoch();
+
+    // 转换为秒级时间戳
+    qint64 timestamp = timestampMS / 1000;
+
+    // 将时间戳转换为字符串
+    QString timestampStr = QString::number(timestamp);
+
+    bt_test_send_notify(global_gattMsg_recive.attr_handle,data,strlen(data));
+}
+
+void gattthread::ResponeGattWIFICFG(bool res)
+{
+    int resultId = 0;
+
+    if(res)
+        resultId = 0;
+    else
+        resultId = -1;
+
+    QJsonObject obj = generateJson(resultId, "WiFiConfiguration");
+
+    // 将 QJsonObject 转换为 QString
+    QJsonDocument doc(obj);
+    QString jsonString = doc.toJson(QJsonDocument::Compact);  // 转换为紧凑格式的 JSON 字符串
+
+    // 将 QString 转换为 char*
+    QByteArray byteArray = jsonString.toUtf8();
+    char* jsonChar = byteArray.data();
+
+    // 调用 ResponeGatt 函数，传递转换后的 char* 数据
+    ResponeGatt(jsonChar);
+}
+
+
 void gattthread::run()
 {
-
+    //timer_wificfg.start();       // 启动计时器
+    //qint64 elapsed = timer_wificfg.elapsed(); // 获取从启动到现在的时间（毫秒）
     while (1)
     {
         // qDebug() << "GATT MESSAGE THREAD LAUCH !" <<  GetMsgFlag;
+
+        if(timer_wificfg.elapsed() > 1000*10 && GATT_STATE == GATT_MASSAGE::GATT_NETWORKCONFIGURE_RES)
+        {
+            GATT_STATE = GATT_MASSAGE::GATT_IDLE;
+            ResponeGattWIFICFG(false);
+        }
+
+
         if (GetMsgFlag)
         {
 #if 1
@@ -30,27 +98,11 @@ void gattthread::run()
                 value_str[global_gattMsg_recive.value_len] = '\0';
             }
 #endif
+            Respone_handle =global_gattMsg_recive.attr_handle;
+
             parseJson(value_str);
 
-            QDateTime currentTime = QDateTime::currentDateTime();
-
-            // 获取当前时间的 Unix 时间戳（毫秒）
-            qint64 timestampMS = currentTime.toMSecsSinceEpoch();
-
-            // 转换为秒级时间戳
-            qint64 timestamp = timestampMS / 1000;
-
-            // 将时间戳转换为字符串
-            QString timestampStr = QString::number(timestamp);
-
-            // 将字符串复制到 char 数组中
-            // char sendmessage[256];
-            strncpy(sendmessage, timestampStr.toStdString().c_str(), sizeof(sendmessage) - 1);
-
-            // 确保以 '\0' 结束
-            sendmessage[sizeof(sendmessage) - 1] = '\0';
-
-            qDebug() << "sendmessage : " << sendmessage;
+//            ResponeGatt();
             GetMsgFlag = 0;
         }
         usleep(100 * 1000);
@@ -126,6 +178,9 @@ void gattthread::handleFingerprintEnrollment(const QString &data)
     emit enrollFinger();
 }
 
+
+
+
 void gattthread::parseJson(const QString &jsonString)
 {
     // 解析 JSON 字符串为 QJsonDocument
@@ -152,6 +207,8 @@ void gattthread::parseJson(const QString &jsonString)
         {
             QJsonObject dataObj = dataValue.toObject();
             handleWiFiConfiguration(dataObj);
+           GATT_STATE = GATT_MASSAGE::GATT_NETWORKCONFIGURE_RES;
+           timer_wificfg.restart();
         }
     }
     else if (operationType == "Format")
